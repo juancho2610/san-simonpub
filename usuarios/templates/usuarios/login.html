@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ingresar - San Simón Pub</title>
+</head>
+<body>
+  <h1>San Simón Pub</h1>
+  <h2>Ingresar</h2>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Entrar</button>
+  </form>
+  <p>¿Eres cliente nuevo? <a href="{% url 'registro' %}">Regístrate aquí</a></p>
+</body>
+</html>
