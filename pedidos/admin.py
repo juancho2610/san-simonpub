@@ -5,9 +5,20 @@ from .models import DetallePedido, Pedido
 
 #Clase del pedido del usuario
 class DetallePedidoInline(admin.TabularInline):
-	model = DetallePedido
-	extra = 1
-	autocomplete_fields = ['producto']
+    model = DetallePedido
+    extra = 0
+    autocomplete_fields = ['producto']
+
+    def get_readonly_fields(self, request, obj=None):
+        if obj:  # pedido ya existente: sus líneas no se editan
+            return ('producto', 'nombre_producto', 'precio_unitario', 'cantidad')
+        return ()
+
+    def has_add_permission(self, request, obj=None):
+        return obj is None
+
+    def has_delete_permission(self, request, obj=None):
+        return obj is None
 
 #Requiere acceso del administrador
 @admin.register(Pedido)

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="refresh" content="30">
+  <title>Pedidos - San Simón Pub</title>
+</head>
+<body>
+  <p><a href="{% url 'inicio' %}">&larr; Mi panel</a></p>
+  <h1>Pedidos activos</h1>
+  <p><small>Se actualiza sola cada 30 segundos.</small></p>
+
+  {% if messages %}
+    <ul>{% for m in messages %}<li><strong>{{ m }}</strong></li>{% endfor %}</ul>
+  {% endif %}
+
+  {% for p in pedidos %}
+    <div style="border:1px solid #888; padding:8px; margin:8px 0;">
+      <h3>Pedido #{{ p.pk }} — {{ p.get_estado_display }}</h3>
+      <p>
+        {{ p.get_tipo_display }}{% if p.mesa %} — Mesa {{ p.mesa }}{% endif %}
+        — {{ p.creado|date:"H:i" }} — Cliente: {{ p.cliente.username }}
+      </p>
+      {% if p.direccion_entrega %}
+        <p>Dirección: {{ p.direccion_entrega }} — Tel: {{ p.telefono_contacto }}</p>
+      {% endif %}
+      {% if p.notas %}<p><strong>Notas:</strong> {{ p.notas }}</p>{% endif %}
+      <ul>
+        {% for d in p.detalles.all %}
+          <li>{{ d.cantidad }} x {{ d.nombre_producto }}</li>
+        {% endfor %}
+      </ul>
+      {% for valor, etiqueta in p.opciones %}
+        <form method="post" action="{% url 'cambiar_estado' p.pk %}" style="display:inline">
+          {% csrf_token %}
+          <input type="hidden" name="estado" value="{{ valor }}">
+          <button type="submit">{{ etiqueta }}</button>
+        </form>
+      {% endfor %}
+    </div>
+  {% empty %}
+    <p>No hay pedidos pendientes.</p>
+  {% endfor %}
+</body>
+</html>

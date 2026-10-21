@@ -12,6 +12,10 @@
 	<p><a href="{% url 'menu' %}"> Ver el menu</a></p>
         <p><a href="{% url 'mis_pedidos' %}">Mis pedidos</a></p>
      {% endif %}
+     
+     {% if user.rol.codigo == 'ADMIN' or user.rol.codigo == 'SERVICIO' or user.rol.codigo == 'COCINA_BAR' %}
+        <p><a href="{% url 'tablero_pedidos' %}">Ver pedidos</a></p>
+     {% endif %}
   <form method="post" action="{% url 'logout' %}">
     {% csrf_token %}
     <button type="submit">Cerrar sesión</button>

@@ -40,6 +40,27 @@ class Pedido(models.Model):
     class Meta:
         ordering = ['-creado']
 
+    SIGUIENTES = {
+        Estado.RECIBIDO: [Estado.EN_PREPARACION, Estado.CANCELADO],
+        Estado.EN_PREPARACION: [Estado.LISTO, Estado.CANCELADO],
+        Estado.LISTO: [Estado.EN_CAMINO, Estado.ENTREGADO],
+        Estado.EN_CAMINO: [Estado.ENTREGADO],
+    }
+
+    PERMISOS = {
+        'COCINA_BAR': {
+            (Estado.RECIBIDO, Estado.EN_PREPARACION),
+            (Estado.EN_PREPARACION, Estado.LISTO),
+        },
+        'SERVICIO': {
+            (Estado.RECIBIDO, Estado.CANCELADO),
+            (Estado.EN_PREPARACION, Estado.CANCELADO),
+            (Estado.LISTO, Estado.EN_CAMINO),
+            (Estado.LISTO, Estado.ENTREGADO),
+            (Estado.EN_CAMINO, Estado.ENTREGADO),
+        },
+    }
+
     def clean(self):
         errores = {}
         if self.tipo == self.Tipo.EN_MESA and not self.mesa:
@@ -51,6 +72,23 @@ class Pedido(models.Model):
                 errores['telefono_contacto'] = 'El teléfono es obligatorio.'
         if errores:
             raise ValidationError(errores)
+
+
+    def estados_permitidos(self, rol_codigo):
+        """Estados a los que este rol puede mover el pedido ahora mismo."""
+        opciones = []
+        for nuevo in self.SIGUIENTES.get(self.estado, []):
+            es_domicilio = self.tipo == self.Tipo.DOMICILIO
+            if nuevo == self.Estado.EN_CAMINO and not es_domicilio:
+                continue
+            if (nuevo == self.Estado.ENTREGADO
+                    and self.estado == self.Estado.LISTO and es_domicilio):
+                continue
+            if rol_codigo != 'ADMIN' and (
+                    self.estado, nuevo) not in self.PERMISOS.get(rol_codigo, set()):
+                continue
+            opciones.append((nuevo, self.Estado(nuevo).label))
+        return opciones
 
     @property
     def total(self):
