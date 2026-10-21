@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ producto.nombre }} - San Simón Pub</title>
+</head>
+<body>
+  <p><a href="{% url 'menu' %}">&larr; Volver al menú</a></p>
+  <h1>{{ producto.nombre }}</h1>
+  {% if producto.foto %}
+    <img src="{{ producto.foto.url }}" alt="{{ producto.nombre }}" width="250">
+  {% endif %}
+  <p>{{ producto.descripcion }}</p>
+  <p><strong>${{ producto.precio|floatformat:0 }}</strong> COP</p>
+  <p><small>Categoría: {{ producto.categoria }}</small></p>
+</body>
+</html>

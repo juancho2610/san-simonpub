@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Menú - San Simón Pub</title>
+</head>
+<body>
+  <h1>Menú de San Simón Pub</h1>
+
+  {% for categoria in categorias %}
+    <h2>{{ categoria.nombre }}</h2>
+    <ul>
+      {% for producto in categoria.productos.all %}
+        <li>
+          {% if producto.foto %}
+            <img src="{{ producto.foto.url }}" alt="{{ producto.nombre }}" width="80">
+          {% endif %}
+          <a href="{% url 'detalle_producto' producto.pk %}">{{ producto.nombre }}</a>
+          — ${{ producto.precio|floatformat:0 }}
+          <br><small>{{ producto.descripcion }}</small>
+        </li>
+      {% endfor %}
+    </ul>
+  {% empty %}
+    <p>El menú no está disponible en este momento.</p>
+  {% endfor %}
+</body>
+</html>
