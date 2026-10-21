@@ -3,4 +3,5 @@ Django==5.2.18
 mysqlclient==2.3.0
 pillow==13.0.0
 python-dotenv==1.2.4
+qrcode==8.2
 sqlparse==0.6.0
