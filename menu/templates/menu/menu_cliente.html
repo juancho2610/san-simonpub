@@ -7,6 +7,11 @@
 </head>
 <body>
   <h1>Menú de San Simón Pub</h1>
+  
+   <p><a href="{% url 'ver_carrito' %}">Ver mi carrito</a></p>
+  {% if messages %}
+    <ul>{% for m in messages %}<li><strong>{{ m }}</strong></li>{% endfor %}</ul>
+  {% endif %}
 
   {% for categoria in categorias %}
     <h2>{{ categoria.nombre }}</h2>
@@ -19,6 +24,11 @@
           <a href="{% url 'detalle_producto' producto.pk %}">{{ producto.nombre }}</a>
           — ${{ producto.precio|floatformat:0 }}
           <br><small>{{ producto.descripcion }}</small>
+	    
+	  <form method="post" action="{% url 'agregar_al_carrito' producto.pk %}">
+            {% csrf_token %}
+            <button type="submit">Agregar</button>
+          </form>
         </li>
       {% endfor %}
     </ul>

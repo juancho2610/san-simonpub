@@ -149,3 +149,7 @@ LOGOUT_REDIRECT_URL = 'login'
 #Medios de imagenes
 MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+#Cantidad de mesas en el establecimiento
+MESAS_TOTAL = int(os.getenv('MESAS_TOTAL', '20'))
+

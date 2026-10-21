@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pedido #{{ pedido.pk }} - San Simón Pub</title>
+</head>
+<body>
+  <p><a href="{% url 'mis_pedidos' %}">&larr; Mis pedidos</a></p>
+  {% if messages %}
+    <ul>{% for m in messages %}<li><strong>{{ m }}</strong></li>{% endfor %}</ul>
+  {% endif %}
+  <h1>Pedido #{{ pedido.pk }}</h1>
+  <p>Estado: <strong>{{ pedido.get_estado_display }}</strong></p>
+  <p>Tipo: {{ pedido.get_tipo_display }}
+    {% if pedido.mesa %} — Mesa {{ pedido.mesa }}{% endif %}</p>
+  {% if pedido.direccion_entrega %}<p>Dirección: {{ pedido.direccion_entrega }}</p>{% endif %}
+  {% if pedido.notas %}<p>Notas: {{ pedido.notas }}</p>{% endif %}
+  <ul>
+    {% for d in pedido.detalles.all %}
+      <li>{{ d.cantidad }} x {{ d.nombre_producto }} — ${{ d.subtotal|floatformat:0 }}</li>
+    {% endfor %}
+  </ul>
+  <p><strong>Total: ${{ pedido.total|floatformat:0 }} COP</strong></p>
+</body>
+</html>

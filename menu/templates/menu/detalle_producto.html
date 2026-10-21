@@ -14,5 +14,10 @@
   <p>{{ producto.descripcion }}</p>
   <p><strong>${{ producto.precio|floatformat:0 }}</strong> COP</p>
   <p><small>Categoría: {{ producto.categoria }}</small></p>
+
+ <form method="post" action="{% url 'agregar_al_carrito' producto.pk %}">
+    {% csrf_token %}
+    <button type="submit">Agregar al carrito</button>
+  </form>
 </body>
 </html>

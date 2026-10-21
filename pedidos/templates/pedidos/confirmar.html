@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Confirmar pedido - San Simón Pub</title>
+</head>
+<body>
+  <p><a href="{% url 'ver_carrito' %}">&larr; Volver al carrito</a></p>
+  <h1>Confirmar pedido</h1>
+
+  <h2>Resumen</h2>
+  <ul>
+    {% for l in lineas %}
+      <li>{{ l.cantidad }} x {{ l.producto.nombre }} — ${{ l.subtotal|floatformat:0 }}</li>
+    {% endfor %}
+  </ul>
+  <p><strong>Total: ${{ total|floatformat:0 }} COP</strong></p>
+
+  <h2>¿Cómo quieres recibirlo?</h2>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Confirmar pedido</button>
+  </form>
+</body>
+</html>

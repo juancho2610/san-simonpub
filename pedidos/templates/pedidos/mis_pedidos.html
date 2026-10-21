@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mis pedidos - San Simón Pub</title>
+</head>
+<body>
+  <p><a href="{% url 'menu' %}">&larr; Menú</a></p>
+  <h1>Mis pedidos</h1>
+  <ul>
+    {% for p in pedidos %}
+      <li>
+        <a href="{% url 'detalle_pedido' p.pk %}">Pedido #{{ p.pk }}</a>
+        — {{ p.get_estado_display }} — ${{ p.total|floatformat:0 }}
+        — {{ p.creado|date:"d/m/Y H:i" }}
+      </li>
+    {% empty %}
+      <li>Aún no has hecho pedidos.</li>
+    {% endfor %}
+  </ul>
+</body>
+</html>
