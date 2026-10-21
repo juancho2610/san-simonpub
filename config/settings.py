@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'usuarios',
+    'menu',
 ]
 
 MIDDLEWARE = [
@@ -143,3 +144,7 @@ AUTH_USER_MODEL = 'usuarios.Usuario'
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'inicio'
 LOGOUT_REDIRECT_URL = 'login'
+
+#Medios de imagenes
+MEDIA_URL = 'media/'
+MEDIA_ROOT = BASE_DIR / 'media'
