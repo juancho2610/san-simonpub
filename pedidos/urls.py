@@ -14,4 +14,5 @@ urlpatterns = [
     path('pedidos/<int:pk>/', views.detalle_pedido, name='detalle_pedido'),
     path('personal/pedidos/', views.tablero, name='tablero_pedidos'),
     path('personal/pedidos/<int:pk>/estado/', views.cambiar_estado, name='cambiar_estado'),
+    path('administracion/estadisticas/', views.estadisticas, name='estadisticas'),
 ]

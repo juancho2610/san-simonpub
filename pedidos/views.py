@@ -4,7 +4,10 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
+from django.db.models import Count, DecimalField, ExpressionWrapper, F, Sum
+from django.utils import timezone
 
+from datetime import datetime, time, timedelta
 
 from usuarios.models import Rol
 from usuarios.views import rol_requerido
@@ -133,3 +136,57 @@ def cambiar_estado(request, pk):
             messages.error(
                 request, 'Ese cambio no es posible (quizá un compañero ya lo hizo).')
     return redirect('tablero_pedidos')
+
+
+@rol_requerido(Rol.ADMIN)
+def estadisticas(request):
+    # Rangos de fecha explícitos: funcionan bien con MySQL y la zona horaria.
+    hoy = timezone.localdate()
+    inicio_hoy = timezone.make_aware(datetime.combine(hoy, time.min))
+    fin_hoy = inicio_hoy + timedelta(days=1)
+    inicio_semana = inicio_hoy - timedelta(days=6)  # hoy + 6 días anteriores
+
+    valor_linea = ExpressionWrapper(
+        F('precio_unitario') * F('cantidad'),
+        output_field=DecimalField(max_digits=14, decimal_places=2))
+
+    cancelado = Pedido.Estado.CANCELADO
+    pedidos_hoy = Pedido.objects.filter(creado__gte=inicio_hoy, creado__lt=fin_hoy)
+
+    lineas_hoy = DetallePedido.objects.filter(
+        pedido__creado__gte=inicio_hoy, pedido__creado__lt=fin_hoy
+    ).exclude(pedido__estado=cancelado)
+
+    ventas_hoy = lineas_hoy.aggregate(t=Sum(valor_linea))['t'] or 0
+    num_validos = pedidos_hoy.exclude(estado=cancelado).count()
+
+    por_estado = [
+        {'estado': Pedido.Estado(f['estado']).label, 'n': f['n']}
+        for f in pedidos_hoy.values('estado').annotate(n=Count('id')).order_by('estado')
+    ]
+    por_tipo = [
+        {'tipo': Pedido.Tipo(f['tipo']).label, 'n': f['n']}
+        for f in pedidos_hoy.exclude(estado=cancelado)
+        .values('tipo').annotate(n=Count('id')).order_by('tipo')
+    ]
+
+    top_productos = (
+        DetallePedido.objects
+        .filter(pedido__creado__gte=inicio_semana, pedido__creado__lt=fin_hoy)
+        .exclude(pedido__estado=cancelado)
+        .values('nombre_producto')
+        .annotate(unidades=Sum('cantidad'), ventas=Sum(valor_linea))
+        .order_by('-unidades', 'nombre_producto')[:10]
+    )
+
+    contexto = {
+        'hoy': hoy,
+        'num_pedidos': num_validos,
+        'ventas_hoy': ventas_hoy,
+        'ticket_promedio': (ventas_hoy / num_validos) if num_validos else 0,
+        'por_estado': por_estado,
+        'por_tipo': por_tipo,
+        'top_productos': top_productos,
+    }
+    return render(request, 'pedidos/estadisticas.html', contexto)
+
