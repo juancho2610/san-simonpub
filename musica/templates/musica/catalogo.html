@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Música - San Simón Pub</title>
+</head>
+<body>
+  <p><a href="{% url 'inicio' %}">&larr; Mi panel</a></p>
+  <h1>Pide tu canción</h1>
+
+  {% if messages %}
+    <ul>{% for m in messages %}<li><strong>{{ m }}</strong></li>{% endfor %}</ul>
+  {% endif %}
+
+  {% if puede_pedir %}
+    <p>Tienes {{ mis_activas }} de {{ maximo }} canciones en la cola.</p>
+  {% else %}
+    <p><strong>Para pedir canciones necesitas un pedido en mesa de las últimas {{ horas }} horas.</strong>
+      <a href="{% url 'menu' %}">Ver el menú</a></p>
+  {% endif %}
+
+  <h2>Cola de reproducción</h2>
+  <ol>
+    {% for s in cola %}
+      <li>
+        {{ s.cancion.titulo }} — {{ s.cancion.artista }}
+        {% if s.estado == 'REPRODUCIENDO' %}<strong>(sonando ahora)</strong>{% endif %}
+        {% if s.cliente_id == user.id %}
+          (tuya)
+          {% if s.estado == 'EN_COLA' %}
+            <form method="post" action="{% url 'cancelar_cancion' s.pk %}" style="display:inline">
+              {% csrf_token %}
+              <button type="submit">Cancelar</button>
+            </form>
+          {% endif %}
+        {% endif %}
+      </li>
+    {% empty %}
+      <li>La cola está vacía.</li>
+    {% endfor %}
+  </ol>
+
+  <h2>Catálogo</h2>
+  <form method="get">
+    <input type="text" name="q" value="{{ q }}" placeholder="Buscar título o artista">
+    <button type="submit">Buscar</button>
+  </form>
+
+  <ul>
+    {% for c in pagina %}
+      <li>
+        {{ c.titulo }} — {{ c.artista }}
+        {% if c.pk in en_cola_ids %}
+          <em>(ya está en la cola)</em>
+        {% elif puede_pedir %}
+          <form method="post" action="{% url 'pedir_cancion' c.pk %}" style="display:inline">
+            {% csrf_token %}
+            <button type="submit">Pedir</button>
+          </form>
+        {% endif %}
+      </li>
+    {% empty %}
+      <li>No encontramos canciones.</li>
+    {% endfor %}
+  </ul>
+
+  <p>
+    {% if pagina.has_previous %}<a href="?q={{ q|urlencode }}&page={{ pagina.previous_page_number }}">&larr; Anterior</a>{% endif %}
+    Página {{ pagina.number }} de {{ pagina.paginator.num_pages }}
+    {% if pagina.has_next %}<a href="?q={{ q|urlencode }}&page={{ pagina.next_page_number }}">Siguiente &rarr;</a>{% endif %}
+  </p>
+</body>
+</html>

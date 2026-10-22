@@ -11,6 +11,7 @@
      {% if user.rol.codigo == 'CLIENTE' %}
 	<p><a href="{% url 'menu' %}"> Ver el menu</a></p>
         <p><a href="{% url 'mis_pedidos' %}">Mis pedidos</a></p>
+        <p><a href="{% url 'catalogo_musical' %}">Pedir una canción</a></p>
      {% endif %}
      
      {% if user.rol.codigo == 'ADMIN' or user.rol.codigo == 'SERVICIO' or user.rol.codigo == 'COCINA_BAR' %}
