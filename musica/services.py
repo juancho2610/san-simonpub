@@ -65,3 +65,38 @@ def solicitar_cancion(usuario, cancion_id):
 
         return SolicitudMusical.objects.create(
             cancion=cancion, cliente=usuario, pedido=pedido)
+
+
+
+def avanzar_cola(terminada_id=None,
+                 estado_final=SolicitudMusical.Estado.REPRODUCIDA):
+    """Cierra la canción indicada (si sigue sonando) y arranca la siguiente.
+
+    Devuelve la solicitud que suena ahora, o None si la cola está vacía.
+    Si ya hay una sonando y no se indica cuál terminó, no toca nada.
+    """
+    S = SolicitudMusical
+    with transaction.atomic():
+        sonando = list(
+            S.objects.select_for_update().filter(estado=S.Estado.REPRODUCIENDO))
+        actual = sonando[0] if sonando else None
+
+        if actual and terminada_id is not None and actual.pk == terminada_id:
+            actual.estado = estado_final
+            actual.fin = timezone.now()
+            actual.save(update_fields=['estado', 'fin'])
+            actual = None
+
+        if actual:
+            return actual
+
+        siguiente = (
+            S.objects.select_for_update()
+            .filter(estado=S.Estado.EN_COLA)
+            .order_by('creada').first())
+        if siguiente is None:
+            return None
+        siguiente.estado = S.Estado.REPRODUCIENDO
+        siguiente.inicio = timezone.now()
+        siguiente.save(update_fields=['estado', 'inicio'])
+        return siguiente

@@ -21,6 +21,10 @@
      {% if user.rol.codigo == 'ADMIN' %}
         <p><a href="{% url 'estadisticas' %}">Ver estadísticas</a></p>
      {% endif %}
+
+     {% if user.rol.codigo == 'ADMIN' or user.rol.codigo == 'SERVICIO' %}
+        <p><a href="{% url 'reproductor' %}">Reproductor de música</a></p>
+     {% endif %}
   <form method="post" action="{% url 'logout' %}">
     {% csrf_token %}
     <button type="submit">Cerrar sesión</button>

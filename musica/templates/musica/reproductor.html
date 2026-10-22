@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="csrf-token" content="{{ csrf_token }}">
+  <title>Reproductor - San Simón Pub</title>
+</head>
+<body>
+  <p><a href="{% url 'inicio' %}">&larr; Mi panel</a></p>
+  <h1>Reproductor del bar</h1>
+
+  <button id="iniciar" type="button">Iniciar reproductor</button>
+  <p id="estado">Detenido. Pulsa "Iniciar" para empezar.</p>
+
+  <h2 id="titulo"></h2>
+  <audio id="audio" controls></audio>
+  <p><button id="omitir" type="button" disabled>Saltar esta canción</button></p>
+
+  <h2>Siguientes</h2>
+  <ol id="proximas"></ol>
+
+  <script>
+    const token = document.querySelector('meta[name="csrf-token"]').content;
+    const audio = document.getElementById('audio');
+    const estado = document.getElementById('estado');
+    const titulo = document.getElementById('titulo');
+    const proximas = document.getElementById('proximas');
+    const btnIniciar = document.getElementById('iniciar');
+    const btnOmitir = document.getElementById('omitir');
+    let actualId = null;
+    let temporizador = null;
+
+    async function llamar(url, datos) {
+      const r = await fetch(url, {
+        method: 'POST',
+        headers: {'X-CSRFToken': token,
+                  'Content-Type': 'application/x-www-form-urlencoded'},
+        body: new URLSearchParams(datos),
+      });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    }
+
+    function mostrarProximas(lista) {
+      proximas.replaceChildren();
+      for (const texto of lista) {
+        const li = document.createElement('li');
+        li.textContent = texto;   // textContent: nunca se interpreta como HTML
+        proximas.appendChild(li);
+      }
+    }
+
+    function aplicar(datos) {
+      mostrarProximas(datos.proximas);
+      if (datos.sonando) {
+        actualId = datos.sonando.id;
+        titulo.textContent = datos.sonando.titulo + ' — ' + datos.sonando.artista;
+        estado.textContent = 'Sonando ahora.';
+        btnOmitir.disabled = false;
+        audio.src = datos.sonando.url;
+        audio.play().catch(() => {
+          estado.textContent = 'El navegador bloqueó el sonido. Pulsa play.';
+        });
+      } else {
+        actualId = null;
+        titulo.textContent = '';
+        audio.removeAttribute('src');
+        btnOmitir.disabled = true;
+        estado.textContent = 'La cola está vacía. Esperando canciones...';
+        temporizador = setTimeout(() => avanzar('/personal/musica/siguiente/', {}), 5000);
+      }
+    }
+
+    async function avanzar(url, datos) {
+      clearTimeout(temporizador);
+      try {
+        aplicar(await llamar(url, datos));
+      } catch (e) {
+        estado.textContent = 'Sin conexión con el servidor. Reintentando...';
+        temporizador = setTimeout(() => avanzar('/personal/musica/siguiente/', {}), 5000);
+      }
+    }
+
+    btnIniciar.addEventListener('click', () => {
+      btnIniciar.disabled = true;
+      avanzar('/personal/musica/siguiente/', {});
+    });
+    btnOmitir.addEventListener('click', () => {
+      if (actualId !== null) avanzar('/personal/musica/omitir/', {id: actualId});
+    });
+    audio.addEventListener('ended', () => {
+      avanzar('/personal/musica/siguiente/', {terminada: actualId ?? ''});
+    });
+    audio.addEventListener('error', () => {
+      if (actualId !== null) avanzar('/personal/musica/omitir/', {id: actualId});
+    });
+  </script>
+</body>
+</html>
