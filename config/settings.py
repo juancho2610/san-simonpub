@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'usuarios',
     'menu',
     'pedidos',
+    'musica',
 ]
 
 MIDDLEWARE = [
@@ -153,3 +154,6 @@ MEDIA_ROOT = BASE_DIR / 'media'
 #Cantidad de mesas en el establecimiento
 MESAS_TOTAL = int(os.getenv('MESAS_TOTAL', '20'))
 
+#Reglas de reproduccion
+MUSICA_MAX_EN_COLA_POR_CLIENTE = 2
+MUSICA_VENTANA_PEDIDO_HORAS = 8
