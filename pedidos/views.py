@@ -1,14 +1,18 @@
 #Clase para la vista del sistema de pedidos nivel de cliente
+import csv
+
 from django.contrib import messages
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
-from django.db.models import Count, DecimalField, ExpressionWrapper, F, Sum
+from django.db.models import Count, DecimalField, ExpressionWrapper, F, Sum, Q
 from django.utils import timezone
+from django.http import HttpResponse
 
 from datetime import datetime, time, timedelta
 
+from musica.models import SolicitudMusical
 from usuarios.models import Rol
 from usuarios.views import rol_requerido
 from menu.models import Producto
@@ -187,6 +191,64 @@ def estadisticas(request):
         'por_estado': por_estado,
         'por_tipo': por_tipo,
         'top_productos': top_productos,
+	'top_canciones': _top_canciones(inicio_semana, fin_hoy),
     }
     return render(request, 'pedidos/estadisticas.html', contexto)
 
+
+def _rango_semana():
+    hoy = timezone.localdate()
+    inicio_hoy = timezone.make_aware(datetime.combine(hoy, time.min))
+    return inicio_hoy - timedelta(days=6), inicio_hoy + timedelta(days=1)
+
+
+def _top_productos(inicio, fin, limite=10):
+    valor = ExpressionWrapper(
+        F('precio_unitario') * F('cantidad'),
+        output_field=DecimalField(max_digits=14, decimal_places=2))
+    return (
+        DetallePedido.objects
+        .filter(pedido__creado__gte=inicio, pedido__creado__lt=fin)
+        .exclude(pedido__estado=Pedido.Estado.CANCELADO)
+        .values('nombre_producto')
+        .annotate(unidades=Sum('cantidad'), ventas=Sum(valor))
+        .order_by('-unidades', 'nombre_producto')[:limite]
+    )
+
+
+def _top_canciones(inicio, fin, limite=10):
+    S = SolicitudMusical
+    return (
+        S.objects
+        .filter(creada__gte=inicio, creada__lt=fin)
+        .exclude(estado=S.Estado.CANCELADA)
+        .values('cancion_id', 'cancion__titulo', 'cancion__artista')
+        .annotate(veces=Count('id'),
+                  sonadas=Count('id', filter=Q(estado=S.Estado.REPRODUCIDA)))
+        .order_by('-veces', 'cancion__titulo')[:limite]
+    )
+
+
+def _csv_seguro(valor):
+    texto = str(valor)
+    return "'" + texto if texto[:1] in ('=', '+', '-', '@', '\t', '\r') else texto
+
+
+@rol_requerido(Rol.ADMIN)
+def reporte_semanal_csv(request):
+    inicio, fin = _rango_semana()
+    respuesta = HttpResponse(content_type='text/csv; charset=utf-8')
+    respuesta['Content-Disposition'] = (
+        f'attachment; filename="reporte_semanal_{timezone.localdate()}.csv"')
+    respuesta.write('\ufeff')  # para que Excel muestre bien las tildes
+    escritor = csv.writer(respuesta)
+    escritor.writerow(['Periodo', f'{inicio.date()} a {(fin - timedelta(days=1)).date()}'])
+    escritor.writerow([])
+    escritor.writerow(['Tipo', 'Nombre', 'Unidades o veces pedidas', 'Ventas COP o veces sonadas'])
+    for p in _top_productos(inicio, fin, limite=50):
+        escritor.writerow(['Producto', _csv_seguro(p['nombre_producto']),
+                           p['unidades'], p['ventas']])
+    for c in _top_canciones(inicio, fin, limite=50):
+        nombre = f"{c['cancion__titulo']} — {c['cancion__artista']}"
+        escritor.writerow(['Canción', _csv_seguro(nombre), c['veces'], c['sonadas']])
+    return respuesta

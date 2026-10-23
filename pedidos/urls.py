@@ -15,4 +15,5 @@ urlpatterns = [
     path('personal/pedidos/', views.tablero, name='tablero_pedidos'),
     path('personal/pedidos/<int:pk>/estado/', views.cambiar_estado, name='cambiar_estado'),
     path('administracion/estadisticas/', views.estadisticas, name='estadisticas'),
+    path('administracion/reporte-semanal.csv', views.reporte_semanal_csv, name='reporte_semanal'),
 ]

@@ -47,5 +47,21 @@
       <tr><td colspan="3">Sin datos todavía.</td></tr>
     {% endfor %}
   </table>
+  <h2>Canciones más pedidas (últimos 7 días)</h2>
+  <table border="1" cellpadding="6">
+    <tr><th>Canción</th><th>Veces pedida</th><th>Veces que sonó</th></tr>
+    {% for c in top_canciones %}
+      <tr>
+        <td>{{ c.cancion__titulo }} — {{ c.cancion__artista }}</td>
+        <td>{{ c.veces }}</td>
+        <td>{{ c.sonadas }}</td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="3">Sin datos todavía.</td></tr>
+    {% endfor %}
+  </table>
+
+  <p><a href="{% url 'reporte_semanal' %}">Descargar reporte semanal (CSV)</a></p>
+
 </body>
 </html>
