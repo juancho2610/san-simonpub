@@ -63,5 +63,21 @@
 
   <p><a href="{% url 'reporte_semanal' %}">Descargar reporte semanal (CSV)</a></p>
 
+   <h2>Calificación por producto (últimos 30 días)</h2>
+  <table border="1" cellpadding="6">
+    <tr><th>Producto</th><th>Promedio</th><th>Calificaciones</th></tr>
+    {% for c in calificaciones %}
+      <tr>
+        <td>{{ c.detalle__producto__nombre }}</td>
+        <td>{{ c.promedio|floatformat:1 }} / 5</td>
+        <td>{{ c.cantidad }}{% if c.cantidad < 5 %} <em>(pocos datos)</em>{% endif %}</td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="3">Aún no hay calificaciones.</td></tr>
+    {% endfor %}
+  </table>
+  <p><small>La tabla va del mejor al peor calificado. Con menos de 5
+  calificaciones, el promedio puede engañar.</small></p>
+
 </body>
 </html>

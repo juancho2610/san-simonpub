@@ -1,7 +1,7 @@
 # Register your models here for dashborad de pedidos.
 from django.contrib import admin
 
-from .models import DetallePedido, Pedido
+from .models import Calificacion, DetallePedido, Pedido
 
 #Clase del pedido del usuario
 class DetallePedidoInline(admin.TabularInline):
@@ -32,3 +32,16 @@ class PedidoAdmin(admin.ModelAdmin):
     @admin.display(description='Total (COP)')
     def total_cop(self, obj):
         return f'${obj.total:,.0f}'
+
+
+@admin.register(Calificacion)
+class CalificacionAdmin(admin.ModelAdmin):
+    list_display = ('detalle', 'estrellas', 'comentario', 'creada')
+    list_filter = ('estrellas',)
+    readonly_fields = ('detalle', 'estrellas', 'comentario', 'creada')
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False

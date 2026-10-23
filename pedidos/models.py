@@ -3,7 +3,7 @@ from decimal import Decimal
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.core.validators import MinValueValidator
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 from menu.models import Producto
@@ -130,3 +130,27 @@ class DetallePedido(models.Model):
 
     def __str__(self):
         return f'{self.cantidad} x {self.nombre_producto}'
+
+
+#Clase Clasficaion de Productos despues de un pedido
+class Calificacion(models.Model):
+    # OneToOne = una sola calificación por línea de pedido.
+    detalle = models.OneToOneField(
+        DetallePedido, on_delete=models.CASCADE, related_name='calificacion')
+    estrellas = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(5)])
+    comentario = models.CharField(max_length=200, blank=True)
+    creada = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'calificación'
+        verbose_name_plural = 'calificaciones'
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(estrellas__gte=1, estrellas__lte=5),
+                name='estrellas_entre_1_y_5'),
+        ]
+
+    def __str__(self):
+        return f'{self.estrellas} estrellas - {self.detalle.nombre_producto}'
+

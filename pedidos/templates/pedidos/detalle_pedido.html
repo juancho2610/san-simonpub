@@ -4,7 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Pedido #{{ pedido.pk }} - San Simón Pub</title>
-  <meta http-equiv="refresh" content="30">
+  {% if pedido.estado != 'ENTREGADO' and pedido.estado != 'CANCELADO' %}
+    <meta http-equiv="refresh" content="30">
+  {% endif %}
 </head>
 <body>
   <p><a href="{% url 'mis_pedidos' %}">&larr; Mis pedidos</a></p>
@@ -23,5 +25,34 @@
     {% endfor %}
   </ul>
   <p><strong>Total: ${{ pedido.total|floatformat:0 }} COP</strong></p>
+    {% if pedido.estado == 'ENTREGADO' %}
+    <h2>Califica tu pedido</h2>
+    <p><small>Una vez enviada, la calificación no se puede cambiar.</small></p>
+    <form method="post" action="{% url 'calificar_pedido' pedido.pk %}">
+      {% csrf_token %}
+      <ul>
+        {% for d in pedido.detalles.all %}
+          <li>
+            {{ d.nombre_producto }} —
+            {% if d.calificacion %}
+              Tu calificación: {{ d.calificacion.estrellas }} de 5
+            {% else %}
+              <select name="estrellas_{{ d.pk }}">
+                <option value="">Sin calificar</option>
+                <option value="5">5 - Excelente</option>
+                <option value="4">4 - Muy bueno</option>
+                <option value="3">3 - Normal</option>
+                <option value="2">2 - Malo</option>
+                <option value="1">1 - Muy malo</option>
+              </select>
+              <input type="text" name="comentario_{{ d.pk }}" maxlength="200"
+                     placeholder="Comentario (opcional)">
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+      <button type="submit">Enviar calificación</button>
+    </form>
+  {% endif %}
 </body>
 </html>

@@ -6,7 +6,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
-from django.db.models import Count, DecimalField, ExpressionWrapper, F, Sum, Q
+from django.db.models import Avg, Count, DecimalField, ExpressionWrapper, F, Sum, Q
 from django.utils import timezone
 from django.http import HttpResponse
 
@@ -18,7 +18,7 @@ from usuarios.views import rol_requerido
 from menu.models import Producto
 
 from .forms import PedidoForm
-from .models import DetallePedido, Pedido
+from .models import Calificacion, DetallePedido, Pedido
 from .carrito import Carrito
 
 #Vista Carrito
@@ -192,6 +192,8 @@ def estadisticas(request):
         'por_tipo': por_tipo,
         'top_productos': top_productos,
 	'top_canciones': _top_canciones(inicio_semana, fin_hoy),
+	'calificaciones': _calificaciones_por_producto(
+            fin_hoy - timedelta(days=30), fin_hoy),
     }
     return render(request, 'pedidos/estadisticas.html', contexto)
 
@@ -251,4 +253,70 @@ def reporte_semanal_csv(request):
     for c in _top_canciones(inicio, fin, limite=50):
         nombre = f"{c['cancion__titulo']} — {c['cancion__artista']}"
         escritor.writerow(['Canción', _csv_seguro(nombre), c['veces'], c['sonadas']])
+
+    escritor.writerow([])
+    escritor.writerow(['Calificaciones de los últimos 30 días'])
+    escritor.writerow(['Tipo', 'Producto', 'Promedio de estrellas',
+                       'Cantidad de calificaciones'])
+    for c in _calificaciones_por_producto(fin - timedelta(days=30), fin):
+        escritor.writerow(['Calificación',
+                           _csv_seguro(c['detalle__producto__nombre']),
+                           round(c['promedio'], 2), c['cantidad']])
     return respuesta
+
+
+@require_POST
+@rol_requerido(Rol.CLIENTE)
+def calificar(request, pk):
+    with transaction.atomic():
+        # Bloqueamos el pedido: dos envíos a la vez no pueden duplicar nada.
+        # Filtrar por cliente impide calificar pedidos ajenos.
+        pedido = get_object_or_404(
+            Pedido.objects.select_for_update(), pk=pk, cliente=request.user)
+
+        if pedido.estado != Pedido.Estado.ENTREGADO:
+            messages.error(
+                request, 'Solo puedes calificar pedidos ya entregados.')
+            return redirect('detalle_pedido', pk=pedido.pk)
+
+        ya_calificados = set(
+            Calificacion.objects.filter(detalle__pedido=pedido)
+            .values_list('detalle_id', flat=True))
+
+        nuevas = []
+        for d in pedido.detalles.all():
+            if d.pk in ya_calificados:
+                continue
+            bruto = request.POST.get(f'estrellas_{d.pk}', '').strip()
+            if not bruto:
+                continue  # el cliente puede calificar solo algunos productos
+            if bruto not in ('1', '2', '3', '4', '5'):
+                messages.error(request, 'El puntaje debe ser de 1 a 5.')
+                return redirect('detalle_pedido', pk=pedido.pk)
+            comentario = request.POST.get(f'comentario_{d.pk}', '').strip()
+            if len(comentario) > 200:
+                messages.error(
+                    request, 'El comentario no puede pasar de 200 caracteres.')
+                return redirect('detalle_pedido', pk=pedido.pk)
+            nuevas.append(Calificacion(
+                detalle=d, estrellas=int(bruto), comentario=comentario))
+
+        if not nuevas:
+            messages.warning(request, 'Elige al menos un puntaje.')
+            return redirect('detalle_pedido', pk=pedido.pk)
+
+        Calificacion.objects.bulk_create(nuevas)
+
+    messages.success(request, '¡Gracias por tu opinión!')
+    return redirect('detalle_pedido', pk=pedido.pk)
+
+
+
+def _calificaciones_por_producto(inicio, fin):
+    return (
+        Calificacion.objects
+        .filter(creada__gte=inicio, creada__lt=fin)
+        .values('detalle__producto_id', 'detalle__producto__nombre')
+        .annotate(promedio=Avg('estrellas'), cantidad=Count('id'))
+        .order_by('-promedio', '-cantidad', 'detalle__producto__nombre')
+    )
