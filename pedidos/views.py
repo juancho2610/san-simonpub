@@ -16,6 +16,7 @@ from musica.models import SolicitudMusical
 from usuarios.models import Rol
 from usuarios.views import rol_requerido
 from menu.models import Producto
+from cuentas.services import cuenta_abierta_para
 
 from .forms import PedidoForm
 from .models import Calificacion, DetallePedido, Pedido
@@ -75,6 +76,7 @@ def confirmar(request):
             with transaction.atomic():
                 pedido = form.save(commit=False)
                 pedido.cliente = request.user
+                pedido.cuenta = cuenta_abierta_para(request.user)
                 pedido.save()
                 for l in lineas:
                     DetallePedido.objects.create(

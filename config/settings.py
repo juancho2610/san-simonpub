@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'menu',
     'pedidos',
     'musica',
+    'cuentas',
 ]
 
 MIDDLEWARE = [

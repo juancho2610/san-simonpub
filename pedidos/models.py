@@ -26,6 +26,8 @@ class Pedido(models.Model):
     cliente = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.PROTECT,
         related_name='pedidos')
+    cuenta = models.ForeignKey(
+        'cuentas.Cuenta', on_delete=models.PROTECT, related_name='pedidos', null=True, blank=True)
     tipo = models.CharField(max_length=10, choices=Tipo.choices,
                             default=Tipo.EN_MESA)
     mesa = models.PositiveSmallIntegerField(null=True, blank=True)
