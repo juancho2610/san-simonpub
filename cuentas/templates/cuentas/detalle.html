@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cuenta #{{ cuenta.pk }} - San Simón Pub</title>
+</head>
+<body>
+  <p><a href="{% url 'cuentas_lista' %}">&larr; Cuentas</a></p>
+  <h1>Cuenta #{{ cuenta.pk }} — {{ cuenta.cliente.username }}</h1>
+  <p>Estado: <strong>{{ cuenta.get_estado_display }}</strong>
+    {% if cuenta.numero %} — Comprobante No. {{ cuenta.numero }}{% endif %}</p>
+
+  {% if messages %}
+    <ul>{% for m in messages %}<li><strong>{{ m }}</strong></li>{% endfor %}</ul>
+  {% endif %}
+
+  {% if otras_pendientes %}
+    <div style="border:2px solid #b00; padding:8px; margin:8px 0;">
+      <strong>Este cliente tiene cuentas pendientes de pago:</strong>
+      <ul>
+        {% for o in otras_pendientes %}
+          <li><a href="{% url 'cuenta_detalle' o.pk %}">Cuenta #{{ o.pk }}</a>
+            — saldo ${{ o.saldo|floatformat:0 }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+
+  <h2>Pedidos</h2>
+  {% for p in pedidos %}
+    <h3>Pedido #{{ p.pk }} — {{ p.get_estado_display }}</h3>
+    <ul>
+      {% for d in p.detalles.all %}
+        <li>{{ d.cantidad }} x {{ d.nombre_producto }} — ${{ d.subtotal|floatformat:0 }}</li>
+      {% endfor %}
+    </ul>
+  {% empty %}
+    <p>Esta cuenta no tiene pedidos.</p>
+  {% endfor %}
+
+  <p><strong>Total: ${{ cuenta.total|floatformat:0 }} COP</strong></p>
+
+  {% if cuenta.pagos.all %}
+    <h2>Pagos registrados</h2>
+    <ul>
+      {% for pg in cuenta.pagos.all %}
+        <li>{{ pg.metodo }} — ${{ pg.monto|floatformat:0 }}
+          {% if pg.referencia %}(ref. {{ pg.referencia }}){% endif %}
+          — {{ pg.creado|date:"d/m H:i" }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+  <p>Pagado: ${{ cuenta.pagado|floatformat:0 }} —
+    <strong>Saldo: ${{ cuenta.saldo|floatformat:0 }}</strong></p>
+
+  {% if puede_cobrar %}
+    <h2>Registrar pago</h2>
+    <p><small>Anota lo que se cobra, no el billete que entrega el cliente.
+      Si pagan entre varios, usa una línea por pago. Puedes escribir 20000 o 20.000.</small></p>
+    <form method="post" action="{% url 'cuenta_cobrar' cuenta.pk %}"
+          onsubmit="this.querySelector('button[type=submit]').disabled = true;">
+      {% csrf_token %}
+      <table>
+        <tr><th>Método</th><th>Monto (COP)</th><th>Referencia</th></tr>
+        {% for i in lineas %}
+          <tr>
+            <td>
+              <select name="metodo_{{ i }}">
+                <option value="">—</option>
+                {% for m in metodos %}
+                  <option value="{{ m.pk }}">{{ m.nombre }}</option>
+                {% endfor %}
+              </select>
+            </td>
+            <td><input type="text" name="monto_{{ i }}" inputmode="numeric" size="12"></td>
+            <td><input type="text" name="ref_{{ i }}" maxlength="60" size="20"></td>
+          </tr>
+        {% endfor %}
+      </table>
+      <button type="submit">Registrar pago</button>
+    </form>
+
+    {% if es_admin and cuenta.estado == 'ABIERTA' %}
+      <h2>El cliente no puede pagar ahora</h2>
+      <form method="post" action="{% url 'cuenta_pendiente' cuenta.pk %}"
+            onsubmit="return confirm('¿Dejar esta cuenta pendiente de pago?');">
+        {% csrf_token %}
+        <button type="submit">Dejar pendiente de pago</button>
+      </form>
+    {% endif %}
+  {% endif %}
+</body>
+</html>

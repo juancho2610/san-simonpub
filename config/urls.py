@@ -26,6 +26,7 @@ urlpatterns = [
     path('', include('menu.urls')),
     path('', include('pedidos.urls')),
     path('', include('musica.urls')),
+    path('', include('cuentas.urls')),
 ]
 
 if settings.DEBUG:
