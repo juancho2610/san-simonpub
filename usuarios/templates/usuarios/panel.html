@@ -8,6 +8,14 @@
 <body>
   <h1>{{ titulo }}</h1>
   <p>Hola, {{ user.username }}. Tu rol es: {{ user.rol }}.</p>
+     
+     {% if saldo_pendiente %}
+       <div style="border:2px solid #b00; padding:8px; margin:8px 0;">
+            <strong>Tienes una cuenta pendiente de pago por ${{ saldo_pendiente|floatformat:0 }}.</strong><br>
+            Acércate al personal cuando quieras ponerte al día.
+       </div>
+     {% endif %}
+
      {% if user.rol.codigo == 'CLIENTE' %}
 	<p><a href="{% url 'menu' %}"> Ver el menu</a></p>
         <p><a href="{% url 'mis_pedidos' %}">Mis pedidos</a></p>

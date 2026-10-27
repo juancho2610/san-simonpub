@@ -7,6 +7,10 @@
   {% if pedido.estado != 'ENTREGADO' and pedido.estado != 'CANCELADO' %}
     <meta http-equiv="refresh" content="30">
   {% endif %}
+
+  {% if pedido.cuenta and pedido.cuenta.estado == 'PAGADA' %}
+    <p><a href="{% url 'comprobante' pedido.cuenta.pk %}">Ver comprobante No. {{ pedido.cuenta.numero }}</a></p>
+  {% endif %}
 </head>
 <body>
   <p><a href="{% url 'mis_pedidos' %}">&larr; Mis pedidos</a></p>

@@ -8,7 +8,7 @@ from django.shortcuts import redirect, render
 
 from .forms import RegistroClienteForm
 from .models import Rol
-
+from decimal import Decimal
 
 def rol_requerido(*codigos):
     """El guardia: solo deja pasar a los roles indicados."""
@@ -49,8 +49,11 @@ def inicio(request):
     return redirect(destinos[codigo])
 
 
-def _panel(request, titulo):
-    return render(request, 'usuarios/panel.html', {'titulo': titulo})
+def _panel(request, titulo, extra=None):
+    contexto = {'titulo': titulo}
+    if extra:
+        contexto.update(extra)
+    return render(request, 'usuarios/panel.html', contexto)
 
 
 @rol_requerido(Rol.ADMIN)
@@ -70,4 +73,9 @@ def panel_cocina(request):
 
 @rol_requerido(Rol.CLIENTE)
 def panel_cliente(request):
-    return _panel(request, 'Bienvenido a San Simón Pub')
+    from cuentas.models import Cuenta  # importación local: evita ciclos
+    pendientes = Cuenta.objects.filter(
+        cliente=request.user, estado=Cuenta.Estado.PENDIENTE)
+    saldo = sum((c.saldo for c in pendientes), Decimal('0'))
+    extra = {'saldo_pendiente': saldo} if saldo > 0 else {}
+    return _panel(request, 'Bienvenido a San Simón Pub', extra)

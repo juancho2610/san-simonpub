@@ -15,6 +15,10 @@
     <ul>{% for m in messages %}<li><strong>{{ m }}</strong></li>{% endfor %}</ul>
   {% endif %}
 
+  {% if cuenta.estado == 'PAGADA' %}
+    <p><a href="{% url 'comprobante' cuenta.pk %}">Ver comprobante</a></p>
+  {% endif %}
+
   {% if otras_pendientes %}
     <div style="border:2px solid #b00; padding:8px; margin:8px 0;">
       <strong>Este cliente tiene cuentas pendientes de pago:</strong>

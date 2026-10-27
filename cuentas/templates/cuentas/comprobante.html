@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Comprobante No. {{ cuenta.numero }} - San Simón Pub</title>
+  <style>
+    @media print { .no-imprimir { display: none; } }
+  </style>
+</head>
+<body>
+  <p class="no-imprimir"><a href="{% url 'inicio' %}">&larr; Mi panel</a></p>
+
+  <h1>San Simón Pub</h1>
+  <h2>Comprobante de consumo No. {{ cuenta.numero }}</h2>
+  <p><strong>Comprobante interno de consumo. No es factura electrónica de venta.</strong></p>
+  <p>Fecha: {{ fecha_pago|date:"d/m/Y H:i" }}<br>
+     Cliente: {{ cuenta.cliente.username }}</p>
+
+  <h3>Consumo</h3>
+  {% for p in pedidos %}
+    <p>Pedido #{{ p.pk }}</p>
+    <ul>
+      {% for d in p.detalles.all %}
+        <li>{{ d.cantidad }} x {{ d.nombre_producto }} — ${{ d.subtotal|floatformat:0 }}</li>
+      {% endfor %}
+    </ul>
+  {% endfor %}
+
+  <p><strong>Total: ${{ cuenta.total|floatformat:0 }} COP</strong></p>
+  <p><small>Los precios incluyen impuestos.</small></p>
+
+  <h3>Pagos</h3>
+  <ul>
+    {% for pg in pagos %}
+      <li>{{ pg.metodo }} — ${{ pg.monto|floatformat:0 }}
+        {% if pg.referencia %}(ref. {{ pg.referencia }}){% endif %}</li>
+    {% endfor %}
+  </ul>
+
+  <p>¡Gracias por visitarnos!</p>
+  <p class="no-imprimir">
+    <button type="button" onclick="window.print()">Imprimir</button>
+  </p>
+</body>
+</html>

@@ -4,6 +4,9 @@ from decimal import Decimal
 from django.contrib import messages
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
+from django.contrib.auth.decorators import login_required
+
+from django.http import Http404
 
 from pedidos.models import Pedido
 from usuarios.models import Rol
@@ -119,3 +122,22 @@ def pendiente(request, pk):
     except CobroNoPermitido as error:
         messages.error(request, str(error))
     return redirect('cuenta_detalle', pk=pk)
+
+@login_required
+def comprobante(request, pk):
+    cuenta = get_object_or_404(
+        Cuenta.objects.select_related('cliente'),
+        pk=pk, estado=Cuenta.Estado.PAGADA)
+    codigo = request.user.rol.codigo if request.user.rol else None
+    es_personal = codigo in (Rol.ADMIN, Rol.SERVICIO)
+    if cuenta.cliente_id != request.user.id and not es_personal:
+        raise Http404  # 404 y no 403: no revela que esa cuenta existe
+    pagos = list(cuenta.pagos.select_related('metodo'))
+    pedidos = (cuenta.pedidos.exclude(estado=Pedido.Estado.CANCELADO)
+               .prefetch_related('detalles').order_by('creado'))
+    return render(request, 'cuentas/comprobante.html', {
+        'cuenta': cuenta,
+        'pedidos': pedidos,
+        'pagos': pagos,
+        'fecha_pago': pagos[-1].creado if pagos else cuenta.cerrada,
+    })
