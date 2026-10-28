@@ -105,3 +105,28 @@ def dejar_pendiente(cuenta_id, usuario):
         cuenta.estado = Cuenta.Estado.PENDIENTE
         cuenta.save()
         return cuenta
+
+
+def anular_cuenta(cuenta_id, usuario, motivo):
+    motivo = (motivo or '').strip()
+    if len(motivo) < 10:
+        raise CobroNoPermitido(
+            'Escribe el motivo de la anulación (mínimo 10 caracteres).')
+    if len(motivo) > 200:
+        raise CobroNoPermitido(
+            'El motivo no puede pasar de 200 caracteres.')
+    with transaction.atomic():
+        cuenta = Cuenta.objects.select_for_update().filter(pk=cuenta_id).first()
+        if cuenta is None:
+            raise CobroNoPermitido('Esa cuenta no existe.')
+        if cuenta.estado not in (Cuenta.Estado.PAGADA, Cuenta.Estado.PENDIENTE):
+            raise CobroNoPermitido(
+                'Solo se puede anular una cuenta pagada o pendiente.')
+        cuenta.estado = Cuenta.Estado.ANULADA
+        cuenta.motivo_anulacion = motivo
+        cuenta.anulada_por = usuario
+        cuenta.anulada = timezone.now()
+        cuenta.save(update_fields=[
+            'estado', 'motivo_anulacion', 'anulada_por', 'anulada'])
+        return cuenta
+

@@ -94,5 +94,29 @@
       </form>
     {% endif %}
   {% endif %}
+
+    {% if cuenta.estado == 'ANULADA' %}
+    <div style="border:3px solid #b00; padding:8px; margin:8px 0;">
+      <strong>CUENTA ANULADA</strong><br>
+      Motivo: {{ cuenta.motivo_anulacion }}<br>
+      Por: {{ cuenta.anulada_por.username }} — {{ cuenta.anulada|date:"d/m/Y H:i" }}
+      {% if cuenta.numero %}<br>Comprobante No. {{ cuenta.numero }} (anulado){% endif %}
+    </div>
+  {% endif %}
+
+  {% if es_admin %}
+    {% if cuenta.estado == 'PAGADA' or cuenta.estado == 'PENDIENTE' %}
+      <h2>Anular esta cuenta</h2>
+      <p><small>No se borra nada: queda el motivo, quién anuló y cuándo.
+        El sistema no devuelve dinero.</small></p>
+      <form method="post" action="{% url 'cuenta_anular' cuenta.pk %}"
+            onsubmit="return confirm('¿Anular esta cuenta? No se puede deshacer.');">
+        {% csrf_token %}
+        <textarea name="motivo" rows="2" cols="40" maxlength="200"
+                  placeholder="Motivo (mínimo 10 caracteres)" required></textarea><br>
+        <button type="submit">Anular cuenta</button>
+      </form>
+    {% endif %}
+  {% endif %}
 </body>
 </html>

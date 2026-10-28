@@ -59,6 +59,8 @@ class Cuenta(models.Model):
         null=True, blank=True, related_name='cuentas_cobradas',
         help_text='Quien cerró la cuenta (al cobrar o al dejarla pendiente)')
     motivo_anulacion = models.CharField(max_length=200, blank=True)
+    anulada_por = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, blank=True, related_name='cuentas_anuladas')
+    anulada = models.DateTimeField(null=True, blank=True)
     creada = models.DateTimeField(auto_now_add=True)
     cerrada = models.DateTimeField(null=True, blank=True)
 

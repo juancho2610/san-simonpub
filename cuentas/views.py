@@ -13,7 +13,7 @@ from usuarios.models import Rol
 from usuarios.views import rol_requerido
 
 from .models import Cuenta, MetodoPago
-from .services import CobroNoPermitido, cobrar_cuenta, dejar_pendiente
+from .services import (CobroNoPermitido, anular_cuenta,cobrar_cuenta, dejar_pendiente)
 
 LINEAS = 4  # cuántos pagos se pueden anotar de una vez
 
@@ -127,7 +127,8 @@ def pendiente(request, pk):
 def comprobante(request, pk):
     cuenta = get_object_or_404(
         Cuenta.objects.select_related('cliente'),
-        pk=pk, estado=Cuenta.Estado.PAGADA)
+        pk=pk, estado__in=[Cuenta.Estado.PAGADA, Cuenta.Estado.ANULADA],
+        numero__isnull=False)
     codigo = request.user.rol.codigo if request.user.rol else None
     es_personal = codigo in (Rol.ADMIN, Rol.SERVICIO)
     if cuenta.cliente_id != request.user.id and not es_personal:
@@ -140,4 +141,22 @@ def comprobante(request, pk):
         'pedidos': pedidos,
         'pagos': pagos,
         'fecha_pago': pagos[-1].creado if pagos else cuenta.cerrada,
+        'es_personal': es_personal,
     })
+
+
+@require_POST
+@rol_requerido(Rol.ADMIN)
+def anular(request, pk):
+    try:
+        cuenta = anular_cuenta(pk, request.user, request.POST.get('motivo', ''))
+    except CobroNoPermitido as error:
+        messages.error(request, str(error))
+        return redirect('cuenta_detalle', pk=pk)
+    aviso = 'La cuenta quedó anulada. El comprobante conserva su número.'
+    if cuenta.pagado > 0:
+        aviso += (f' Ojo: tenía pagos por ${cuenta.pagado:,.0f}. El sistema '
+                  'no devuelve dinero: si corresponde un reembolso, hágalo '
+                  'por fuera.')
+    messages.warning(request, aviso)
+    return redirect('cuenta_detalle', pk=pk)

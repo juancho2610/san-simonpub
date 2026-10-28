@@ -17,6 +17,13 @@
   <p>Fecha: {{ fecha_pago|date:"d/m/Y H:i" }}<br>
      Cliente: {{ cuenta.cliente.username }}</p>
 
+  {% if cuenta.estado == 'ANULADA' %}
+    <p style="border:3px solid #b00; padding:8px;">
+      <strong>COMPROBANTE ANULADO</strong>
+      {% if es_personal %}<br>Motivo: {{ cuenta.motivo_anulacion }}{% endif %}
+    </p>
+  {% endif %}
+
   <h3>Consumo</h3>
   {% for p in pedidos %}
     <p>Pedido #{{ p.pk }}</p>
