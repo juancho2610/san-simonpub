@@ -1,48 +1,45 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Mi carrito - San Simón Pub</title>
-</head>
-<body>
-  <p><a href="{% url 'menu' %}">&larr; Seguir viendo el menú</a></p>
+{% extends 'base.html' %}
+{% block titulo %}Mi carrito - San Simón Pub{% endblock %}
+{% block contenido %}
   <h1>Mi carrito</h1>
-
   {% if lineas %}
-    <table border="1" cellpadding="6">
-      <tr>
-        <th>Producto</th><th>Precio</th><th>Cantidad</th><th>Subtotal</th><th></th>
-      </tr>
-      {% for l in lineas %}
-      <tr>
-        <td>{{ l.producto.nombre }}</td>
-        <td>${{ l.producto.precio|floatformat:0 }}</td>
-        <td>
-          <form method="post" action="{% url 'actualizar_carrito' l.producto.pk %}">
+    {% for l in lineas %}
+      <div class="tarjeta">
+        <div class="fila">
+          <strong>{{ l.producto.nombre }}</strong>
+          <span class="precio">${{ l.subtotal|floatformat:"0g" }}</span>
+        </div>
+        <p>${{ l.producto.precio|floatformat:"0g" }} c/u</p>
+        <div class="fila">
+          <form method="post" action="{% url 'actualizar_carrito' l.producto.pk %}" class="fila">
             {% csrf_token %}
-            <input type="number" name="cantidad" value="{{ l.cantidad }}" min="0" max="20">
-            <button type="submit">Actualizar</button>
+            <label>Cantidad
+              <input type="number" name="cantidad" value="{{ l.cantidad }}" min="0" max="20">
+            </label>
+            <button class="btn btn-secundario" type="submit">Actualizar</button>
           </form>
-        </td>
-        <td>${{ l.subtotal|floatformat:0 }}</td>
-        <td>
           <form method="post" action="{% url 'quitar_del_carrito' l.producto.pk %}">
             {% csrf_token %}
-            <button type="submit">Quitar</button>
+            <button class="btn btn-secundario" type="submit">Quitar</button>
           </form>
-        </td>
-      </tr>
-      {% endfor %}
-    </table>
-    <p><strong>Total: ${{ total|floatformat:0 }} COP</strong></p>
-    <p><a href="{% url 'confirmar_pedido' %}">Confirmar pedido</a></p>
+        </div>
+      </div>
+    {% endfor %}
+
+    <div class="tarjeta fila">
+      <strong>Total</strong>
+      <span class="precio">${{ total|floatformat:"0g" }} COP</span>
+    </div>
+
+    <a class="btn btn-bloque" href="{% url 'confirmar_pedido' %}">Confirmar pedido</a>
     <form method="post" action="{% url 'vaciar_carrito' %}">
       {% csrf_token %}
-      <button type="submit">Vaciar carrito</button>
+      <button class="btn btn-secundario btn-bloque" type="submit">Vaciar carrito</button>
     </form>
   {% else %}
-    <p>Tu carrito está vacío.</p>
+    <div class="tarjeta">
+      <p>Tu carrito está vacío.</p>
+      <a class="btn" href="{% url 'menu' %}">Ver el menú</a>
+    </div>
   {% endif %}
-</body>
-</html>
+{% endblock %}

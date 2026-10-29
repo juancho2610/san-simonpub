@@ -1,74 +1,63 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Música - San Simón Pub</title>
-</head>
-<body>
-  <p><a href="{% url 'inicio' %}">&larr; Mi panel</a></p>
+{% extends 'base.html' %}
+{% block titulo %}Música - San Simón Pub{% endblock %}
+{% block contenido %}
   <h1>Pide tu canción</h1>
 
-  {% if messages %}
-    <ul>{% for m in messages %}<li><strong>{{ m }}</strong></li>{% endfor %}</ul>
-  {% endif %}
-
   {% if puede_pedir %}
-    <p>Tienes {{ mis_activas }} de {{ maximo }} canciones en la cola.</p>
+    <div class="tarjeta"><p>Tienes {{ mis_activas }} de {{ maximo }} canciones en la cola.</p></div>
   {% else %}
-    <p><strong>Para pedir canciones necesitas un pedido en mesa de las últimas {{ horas }} horas.</strong>
-      <a href="{% url 'menu' %}">Ver el menú</a></p>
+    <div class="aviso warning">
+      Para pedir canciones necesitas un pedido en mesa de las últimas {{ horas }} horas.
+      <a href="{% url 'menu' %}">Ver el menú</a>
+    </div>
   {% endif %}
 
   <h2>Cola de reproducción</h2>
-  <ol>
-    {% for s in cola %}
-      <li>
+  {% for s in cola %}
+    <div class="tarjeta fila">
+      <span>
         {{ s.cancion.titulo }} — {{ s.cancion.artista }}
-        {% if s.estado == 'REPRODUCIENDO' %}<strong>(sonando ahora)</strong>{% endif %}
-        {% if s.cliente_id == user.id %}
-          (tuya)
-          {% if s.estado == 'EN_COLA' %}
-            <form method="post" action="{% url 'cancelar_cancion' s.pk %}" style="display:inline">
-              {% csrf_token %}
-              <button type="submit">Cancelar</button>
-            </form>
-          {% endif %}
-        {% endif %}
-      </li>
-    {% empty %}
-      <li>La cola está vacía.</li>
-    {% endfor %}
-  </ol>
+        {% if s.estado == 'REPRODUCIENDO' %}<span class="estado">Sonando ahora</span>{% endif %}
+        {% if s.cliente_id == user.id %}<em>(tuya)</em>{% endif %}
+      </span>
+      {% if s.cliente_id == user.id and s.estado == 'EN_COLA' %}
+        <form method="post" action="{% url 'cancelar_cancion' s.pk %}">
+          {% csrf_token %}
+          <button class="btn btn-secundario" type="submit">Cancelar</button>
+        </form>
+      {% endif %}
+    </div>
+  {% empty %}
+    <div class="tarjeta"><p>La cola está vacía.</p></div>
+  {% endfor %}
 
   <h2>Catálogo</h2>
-  <form method="get">
-    <input type="text" name="q" value="{{ q }}" placeholder="Buscar título o artista">
-    <button type="submit">Buscar</button>
+  <form method="get" class="tarjeta">
+    <label>Buscar
+      <input type="text" name="q" value="{{ q }}" placeholder="Título o artista">
+    </label>
+    <button class="btn btn-bloque" type="submit" style="margin-top:10px">Buscar</button>
   </form>
 
-  <ul>
-    {% for c in pagina %}
-      <li>
-        {{ c.titulo }} — {{ c.artista }}
-        {% if c.pk in en_cola_ids %}
-          <em>(ya está en la cola)</em>
-        {% elif puede_pedir %}
-          <form method="post" action="{% url 'pedir_cancion' c.pk %}" style="display:inline">
-            {% csrf_token %}
-            <button type="submit">Pedir</button>
-          </form>
-        {% endif %}
-      </li>
-    {% empty %}
-      <li>No encontramos canciones.</li>
-    {% endfor %}
-  </ul>
+  {% for c in pagina %}
+    <div class="tarjeta fila">
+      <span>{{ c.titulo }} — {{ c.artista }}</span>
+      {% if c.pk in en_cola_ids %}
+        <em>Ya está en la cola</em>
+      {% elif puede_pedir %}
+        <form method="post" action="{% url 'pedir_cancion' c.pk %}">
+          {% csrf_token %}
+          <button class="btn" type="submit">Pedir</button>
+        </form>
+      {% endif %}
+    </div>
+  {% empty %}
+    <div class="tarjeta"><p>No encontramos canciones.</p></div>
+  {% endfor %}
 
   <p>
     {% if pagina.has_previous %}<a href="?q={{ q|urlencode }}&page={{ pagina.previous_page_number }}">&larr; Anterior</a>{% endif %}
     Página {{ pagina.number }} de {{ pagina.paginator.num_pages }}
     {% if pagina.has_next %}<a href="?q={{ q|urlencode }}&page={{ pagina.next_page_number }}">Siguiente &rarr;</a>{% endif %}
   </p>
-</body>
-</html>
+{% endblock %}

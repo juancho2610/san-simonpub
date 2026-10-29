@@ -1,27 +1,25 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Confirmar pedido - San Simón Pub</title>
-</head>
-<body>
-  <p><a href="{% url 'ver_carrito' %}">&larr; Volver al carrito</a></p>
+{% extends 'base.html' %}
+{% block titulo %}Confirmar pedido - San Simón Pub{% endblock %}
+{% block contenido %}
   <h1>Confirmar pedido</h1>
 
-  <h2>Resumen</h2>
-  <ul>
-    {% for l in lineas %}
-      <li>{{ l.cantidad }} x {{ l.producto.nombre }} — ${{ l.subtotal|floatformat:0 }}</li>
-    {% endfor %}
-  </ul>
-  <p><strong>Total: ${{ total|floatformat:0 }} COP</strong></p>
+  <div class="tarjeta">
+    <h3>Resumen</h3>
+    <ul>
+      {% for l in lineas %}
+        <li>{{ l.cantidad }} x {{ l.producto.nombre }} — ${{ l.subtotal|floatformat:"0g" }}</li>
+      {% endfor %}
+    </ul>
+    <p class="precio">Total: ${{ total|floatformat:"0g" }} COP</p>
+  </div>
 
   <h2>¿Cómo quieres recibirlo?</h2>
-  <form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Confirmar pedido</button>
-  </form>
-</body>
-</html>
+  <div class="tarjeta">
+    <form method="post">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button class="btn btn-bloque" type="submit">Confirmar pedido</button>
+    </form>
+  </div>
+  <p><a href="{% url 'ver_carrito' %}">&larr; Volver al carrito</a></p>
+{% endblock %}

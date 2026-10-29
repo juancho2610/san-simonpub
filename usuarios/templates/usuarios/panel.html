@@ -1,46 +1,19 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{{ titulo }}</title>
-</head>
-<body>
+{% extends 'base.html' %}
+{% block titulo %}{{ titulo }} - San Simón Pub{% endblock %}
+{% block contenido %}
   <h1>{{ titulo }}</h1>
   <p>Hola, {{ user.username }}. Tu rol es: {{ user.rol }}.</p>
-     
-     {% if saldo_pendiente %}
-       <div style="border:2px solid #b00; padding:8px; margin:8px 0;">
-            <strong>Tienes una cuenta pendiente de pago por ${{ saldo_pendiente|floatformat:0 }}.</strong><br>
-            Acércate al personal cuando quieras ponerte al día.
-       </div>
-     {% endif %}
 
-     {% if user.rol.codigo == 'CLIENTE' %}
-	<p><a href="{% url 'menu' %}"> Ver el menu</a></p>
-        <p><a href="{% url 'mis_pedidos' %}">Mis pedidos</a></p>
-        <p><a href="{% url 'catalogo_musical' %}">Pedir una canción</a></p>
-     {% endif %}
-     
-     {% if user.rol.codigo == 'ADMIN' or user.rol.codigo == 'SERVICIO' or user.rol.codigo == 'COCINA_BAR' %}
-        <p><a href="{% url 'tablero_pedidos' %}">Ver pedidos</a></p>
-     {% endif %}
-     
-     {% if user.rol.codigo == 'ADMIN' %}
-        <p><a href="{% url 'estadisticas' %}">Ver estadísticas</a></p>
-     {% endif %}
+  {% if saldo_pendiente %}
+    <div class="aviso warning">
+      Tienes una cuenta pendiente de pago por ${{ saldo_pendiente|floatformat:"0g" }}.
+      Acércate al personal cuando quieras ponerte al día.
+    </div>
+  {% endif %}
 
-     {% if user.rol.codigo == 'ADMIN' or user.rol.codigo == 'SERVICIO' %}
-        <p><a href="{% url 'reproductor' %}">Reproductor de música</a></p>
-     {% endif %}
-
-     {% if user.rol.codigo == 'ADMIN' or user.rol.codigo == 'SERVICIO' %}
-        <p><a href="{% url 'cuentas_lista' %}">Cuentas y cobro</a></p>
-     {% endif %}
-
-  <form method="post" action="{% url 'logout' %}">
-    {% csrf_token %}
-    <button type="submit">Cerrar sesión</button>
-  </form>
-</body>
-</html>
+  {% for item in nav_items %}
+    {% if not item.es_inicio %}
+      <a class="btn btn-bloque" href="{{ item.url }}">{{ item.etiqueta }}</a>
+    {% endif %}
+  {% endfor %}
+{% endblock %}

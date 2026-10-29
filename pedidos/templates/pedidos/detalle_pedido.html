@@ -1,62 +1,55 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Pedido #{{ pedido.pk }} - San Simón Pub</title>
+{% extends 'base.html' %}
+{% block titulo %}Pedido #{{ pedido.pk }} - San Simón Pub{% endblock %}
+{% block extra_head %}
   {% if pedido.estado != 'ENTREGADO' and pedido.estado != 'CANCELADO' %}
     <meta http-equiv="refresh" content="30">
   {% endif %}
-
-  {% if pedido.cuenta and pedido.cuenta.estado == 'PAGADA' %}
-    <p><a href="{% url 'comprobante' pedido.cuenta.pk %}">Ver comprobante No. {{ pedido.cuenta.numero }}</a></p>
-  {% endif %}
-</head>
-<body>
-  <p><a href="{% url 'mis_pedidos' %}">&larr; Mis pedidos</a></p>
-  {% if messages %}
-    <ul>{% for m in messages %}<li><strong>{{ m }}</strong></li>{% endfor %}</ul>
-  {% endif %}
+{% endblock %}
+{% block contenido %}
   <h1>Pedido #{{ pedido.pk }}</h1>
-  <p>Estado: <strong>{{ pedido.get_estado_display }}</strong></p>
-  <p>Tipo: {{ pedido.get_tipo_display }}
-    {% if pedido.mesa %} — Mesa {{ pedido.mesa }}{% endif %}</p>
-  {% if pedido.direccion_entrega %}<p>Dirección: {{ pedido.direccion_entrega }}</p>{% endif %}
-  {% if pedido.notas %}<p>Notas: {{ pedido.notas }}</p>{% endif %}
-  <ul>
-    {% for d in pedido.detalles.all %}
-      <li>{{ d.cantidad }} x {{ d.nombre_producto }} — ${{ d.subtotal|floatformat:0 }}</li>
-    {% endfor %}
-  </ul>
-  <p><strong>Total: ${{ pedido.total|floatformat:0 }} COP</strong></p>
-    {% if pedido.estado == 'ENTREGADO' %}
+
+  <div class="tarjeta">
+    <p>Estado: <span class="estado">{{ pedido.get_estado_display }}</span></p>
+    <p>Tipo: {{ pedido.get_tipo_display }}{% if pedido.mesa %} — Mesa {{ pedido.mesa }}{% endif %}</p>
+    {% if pedido.direccion_entrega %}<p>Dirección: {{ pedido.direccion_entrega }}</p>{% endif %}
+    {% if pedido.notas %}<p>Notas: {{ pedido.notas }}</p>{% endif %}
+    <ul>
+      {% for d in pedido.detalles.all %}
+        <li>{{ d.cantidad }} x {{ d.nombre_producto }} — ${{ d.subtotal|floatformat:"0g" }}</li>
+      {% endfor %}
+    </ul>
+    <p class="precio">Total: ${{ pedido.total|floatformat:"0g" }} COP</p>
+    {% if pedido.cuenta and pedido.cuenta.estado == 'PAGADA' %}
+      <a class="btn btn-secundario" href="{% url 'comprobante' pedido.cuenta.pk %}">Ver comprobante No. {{ pedido.cuenta.numero }}</a>
+    {% endif %}
+  </div>
+
+  {% if pedido.estado == 'ENTREGADO' %}
     <h2>Califica tu pedido</h2>
     <p><small>Una vez enviada, la calificación no se puede cambiar.</small></p>
     <form method="post" action="{% url 'calificar_pedido' pedido.pk %}">
       {% csrf_token %}
-      <ul>
-        {% for d in pedido.detalles.all %}
-          <li>
-            {{ d.nombre_producto }} —
-            {% if d.calificacion %}
-              Tu calificación: {{ d.calificacion.estrellas }} de 5
-            {% else %}
-              <select name="estrellas_{{ d.pk }}">
-                <option value="">Sin calificar</option>
-                <option value="5">5 - Excelente</option>
-                <option value="4">4 - Muy bueno</option>
-                <option value="3">3 - Normal</option>
-                <option value="2">2 - Malo</option>
-                <option value="1">1 - Muy malo</option>
-              </select>
-              <input type="text" name="comentario_{{ d.pk }}" maxlength="200"
-                     placeholder="Comentario (opcional)">
-            {% endif %}
-          </li>
-        {% endfor %}
-      </ul>
-      <button type="submit">Enviar calificación</button>
+      {% for d in pedido.detalles.all %}
+        <div class="tarjeta">
+          <strong>{{ d.nombre_producto }}</strong>
+          {% if d.calificacion %}
+            <p>Tu calificación: {{ d.calificacion.estrellas }} de 5</p>
+          {% else %}
+            <select name="estrellas_{{ d.pk }}">
+              <option value="">Sin calificar</option>
+              <option value="5">5 - Excelente</option>
+              <option value="4">4 - Muy bueno</option>
+              <option value="3">3 - Normal</option>
+              <option value="2">2 - Malo</option>
+              <option value="1">1 - Muy malo</option>
+            </select>
+            <input type="text" name="comentario_{{ d.pk }}" maxlength="200" placeholder="Comentario (opcional)">
+          {% endif %}
+        </div>
+      {% endfor %}
+      <button class="btn btn-bloque" type="submit">Enviar calificación</button>
     </form>
   {% endif %}
-</body>
-</html>
+
+  <p><a href="{% url 'mis_pedidos' %}">&larr; Todos mis pedidos</a></p>
+{% endblock %}

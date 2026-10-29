@@ -69,6 +69,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+		'usuarios.context_processors.navegacion',
             ],
         },
     },
@@ -158,3 +159,6 @@ MESAS_TOTAL = int(os.getenv('MESAS_TOTAL', '20'))
 #Reglas de reproduccion
 MUSICA_MAX_EN_COLA_POR_CLIENTE = 2
 MUSICA_VENTANA_PEDIDO_HORAS = 8
+
+#Estilos y vistas de la pantalla
+STATICFILES_DIRS = [BASE_DIR / 'static']
