@@ -147,7 +147,7 @@ AUTH_USER_MODEL = 'usuarios.Usuario'
 #Inicio de Sesion
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'inicio'
-LOGOUT_REDIRECT_URL = 'login'
+LOGOUT_REDIRECT_URL = 'inicio'
 
 #Medios de imagenes
 MEDIA_URL = 'media/'
@@ -162,3 +162,15 @@ MUSICA_VENTANA_PEDIDO_HORAS = 8
 
 #Estilos y vistas de la pantalla
 STATICFILES_DIRS = [BASE_DIR / 'static']
+
+
+#Modelo del negocio
+NEGOCIO = {
+    'nombre': 'San Simón Pub',
+    'eslogan': 'Música en vivo · Cerveza artesanal importada · Cocteles · Licores · Eventos',
+    'horario': 'Jueves a domingo, de 12:00 p. m. a 4:00 a. m.',
+    'direccion': '',    # pendiente: el dueño confirma el barrio y la dirección
+    'telefono': '',     # pendiente: por ejemplo +573001234567
+    'instagram': '',    # pendiente: dirección completa, con https://
+    'facebook': '',     # pendiente: dirección completa, con https://
+}

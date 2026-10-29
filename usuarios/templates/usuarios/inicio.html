@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block titulo %}{{ negocio.nombre }}{% endblock %}
+{% block contenido %}
+  <section class="hero">
+    <img src="{% static 'img/logo_foto.png' %}" alt="{{ negocio.nombre }}">
+    <p class="eslogan">{{ negocio.eslogan }}</p>
+    <a class="btn btn-bloque" href="{% url 'menu' %}">Ver el menú</a>
+    <a class="btn btn-contorno btn-bloque" href="{% url 'login' %}">Ingresar</a>
+    <a class="btn btn-contorno btn-bloque" href="{% url 'registro' %}">Crear cuenta</a>
+  </section>
+
+  <h2>Qué encuentras aquí</h2>
+  <div class="servicios">
+    <div class="tarjeta"><h3>Comida y bebidas</h3><p>Entradas, platos principales, bebidas naturales, cervezas, licores y whisky.</p></div>
+    <div class="tarjeta"><h3>Música</h3><p>Pide tus canciones desde el celular y escúchalas en el local.</p></div>
+    <div class="tarjeta"><h3>Deportes</h3><p>Transmisión de partidos de fútbol y otros eventos deportivos.</p></div>
+    <div class="tarjeta"><h3>Eventos</h3><p>Celebraciones en fechas especiales y eventos privados.</p></div>
+  </div>
+
+  <h2>Cómo funciona</h2>
+  <div class="tarjeta">
+    <ol class="pasos">
+      <li>Escanea el código QR del local o entra desde esta página.</li>
+      <li>Mira el menú y arma tu pedido. Te pedimos crear una cuenta al confirmarlo.</li>
+      <li>Con un pedido en mesa puedes pedir tus canciones.</li>
+      <li>Pide la cuenta al personal y paga en efectivo, con datáfono o por transferencia.</li>
+    </ol>
+  </div>
+
+  <h2>Visítanos</h2>
+  <div class="tarjeta">
+    <p><strong>Horario:</strong> {{ negocio.horario }}</p>
+    {% if negocio.direccion %}<p><strong>Dirección:</strong> {{ negocio.direccion }}</p>{% endif %}
+    {% if negocio.telefono %}<p><strong>Teléfono:</strong> <a href="tel:{{ negocio.telefono }}">{{ negocio.telefono }}</a></p>{% endif %}
+    {% if negocio.instagram %}<p><a href="{{ negocio.instagram }}" target="_blank" rel="noopener noreferrer">Instagram</a></p>{% endif %}
+    {% if negocio.facebook %}<p><a href="{{ negocio.facebook }}" target="_blank" rel="noopener noreferrer">Facebook</a></p>{% endif %}
+  </div>
+{% endblock %}

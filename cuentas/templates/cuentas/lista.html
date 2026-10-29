@@ -1,51 +1,33 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Cuentas - San Simón Pub</title>
-</head>
-<body>
-  <p><a href="{% url 'inicio' %}">&larr; Mi panel</a></p>
+{% extends 'base.html' %}
+{% block titulo %}Cuentas - San Simón Pub{% endblock %}
+{% block contenido %}
   <h1>Cuentas</h1>
 
-  {% if messages %}
-    <ul>{% for m in messages %}<li><strong>{{ m }}</strong></li>{% endfor %}</ul>
-  {% endif %}
-
   <h2>Cuentas abiertas</h2>
-  <table border="1" cellpadding="6">
-    <tr><th>#</th><th>Cliente</th><th>Total</th><th>Desde</th><th></th></tr>
-    {% for c in abiertas %}
-      <tr>
-        <td>{{ c.pk }}</td>
-        <td>{{ c.cliente.username }}</td>
-        <td>${{ c.total|floatformat:0 }}</td>
-        <td>{{ c.creada|date:"d/m H:i" }}</td>
-        <td><a href="{% url 'cuenta_detalle' c.pk %}">Ver / cobrar</a></td>
-      </tr>
-    {% empty %}
-      <tr><td colspan="5">No hay cuentas abiertas con consumos.</td></tr>
-    {% endfor %}
-  </table>
+  {% for c in abiertas %}
+    <a class="tarjeta tarjeta-enlace" href="{% url 'cuenta_detalle' c.pk %}">
+      <div class="fila">
+        <strong>Cuenta #{{ c.pk }} — {{ c.cliente.username }}</strong>
+        <span class="precio">${{ c.total|floatformat:"0g" }}</span>
+      </div>
+      <p>Desde {{ c.creada|date:"d/m H:i" }} · Ver / cobrar</p>
+    </a>
+  {% empty %}
+    <div class="tarjeta"><p>No hay cuentas abiertas con consumos.</p></div>
+  {% endfor %}
 
   {% if es_admin %}
     <h2>Pendientes de pago</h2>
-    <table border="1" cellpadding="6">
-      <tr><th>#</th><th>Cliente</th><th>Total</th><th>Saldo</th><th>Desde</th><th></th></tr>
-      {% for c in pendientes %}
-        <tr>
-          <td>{{ c.pk }}</td>
-          <td>{{ c.cliente.username }}</td>
-          <td>${{ c.total|floatformat:0 }}</td>
-          <td><strong>${{ c.saldo|floatformat:0 }}</strong></td>
-          <td>{{ c.creada|date:"d/m H:i" }}</td>
-          <td><a href="{% url 'cuenta_detalle' c.pk %}">Ver / cobrar</a></td>
-        </tr>
-      {% empty %}
-        <tr><td colspan="6">No hay cuentas pendientes.</td></tr>
-      {% endfor %}
-    </table>
+    {% for c in pendientes %}
+      <a class="tarjeta tarjeta-enlace alerta-roja" href="{% url 'cuenta_detalle' c.pk %}">
+        <div class="fila">
+          <strong>Cuenta #{{ c.pk }} — {{ c.cliente.username }}</strong>
+          <span class="precio">Saldo ${{ c.saldo|floatformat:"0g" }}</span>
+        </div>
+        <p>Total ${{ c.total|floatformat:"0g" }} · Desde {{ c.creada|date:"d/m H:i" }} · Ver / cobrar</p>
+      </a>
+    {% empty %}
+      <div class="tarjeta"><p>No hay cuentas pendientes.</p></div>
+    {% endfor %}
   {% endif %}
-</body>
-</html>
+{% endblock %}

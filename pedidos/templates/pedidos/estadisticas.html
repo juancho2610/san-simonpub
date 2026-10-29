@@ -1,83 +1,85 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Estadísticas - San Simón Pub</title>
-</head>
-<body>
-  <p><a href="{% url 'inicio' %}">&larr; Mi panel</a></p>
+{% extends 'base.html' %}
+{% block titulo %}Estadísticas - San Simón Pub{% endblock %}
+{% block clase_contenido %}ancho{% endblock %}
+{% block contenido %}
   <h1>Estadísticas — {{ hoy|date:"d/m/Y" }}</h1>
 
   <h2>Resumen de hoy</h2>
-  <ul>
-    <li>Pedidos (sin cancelados): <strong>{{ num_pedidos }}</strong></li>
-    <li>Ventas: <strong>${{ ventas_hoy|floatformat:0 }} COP</strong></li>
-    <li>Ticket promedio: <strong>${{ ticket_promedio|floatformat:0 }} COP</strong></li>
-  </ul>
+  <div class="cifras">
+    <div class="cifra">Pedidos (sin cancelados)<strong>{{ num_pedidos }}</strong></div>
+    <div class="cifra">Ventas<strong>${{ ventas_hoy|floatformat:"0g" }}</strong></div>
+    <div class="cifra">Ticket promedio<strong>${{ ticket_promedio|floatformat:"0g" }}</strong></div>
+  </div>
 
-  <h2>Pedidos de hoy por estado</h2>
-  <ul>
-    {% for f in por_estado %}
-      <li>{{ f.estado }}: {{ f.n }}</li>
-    {% empty %}
-      <li>Aún no hay pedidos hoy.</li>
-    {% endfor %}
-  </ul>
-
-  <h2>Pedidos de hoy por tipo</h2>
-  <ul>
-    {% for f in por_tipo %}
-      <li>{{ f.tipo }}: {{ f.n }}</li>
-    {% empty %}
-      <li>Sin datos.</li>
-    {% endfor %}
-  </ul>
+  <div class="rejilla">
+    <div>
+      <h2>Pedidos de hoy por estado</h2>
+      <div class="tarjeta">
+        <ul>
+          {% for f in por_estado %}<li>{{ f.estado }}: {{ f.n }}</li>
+          {% empty %}<li>Aún no hay pedidos hoy.</li>{% endfor %}
+        </ul>
+      </div>
+    </div>
+    <div>
+      <h2>Pedidos de hoy por tipo</h2>
+      <div class="tarjeta">
+        <ul>
+          {% for f in por_tipo %}<li>{{ f.tipo }}: {{ f.n }}</li>
+          {% empty %}<li>Sin datos.</li>{% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
 
   <h2>Lo más pedido (últimos 7 días)</h2>
-  <table border="1" cellpadding="6">
-    <tr><th>Producto</th><th>Unidades</th><th>Ventas</th></tr>
-    {% for p in top_productos %}
-      <tr>
-        <td>{{ p.nombre_producto }}</td>
-        <td>{{ p.unidades }}</td>
-        <td>${{ p.ventas|floatformat:0 }}</td>
-      </tr>
-    {% empty %}
-      <tr><td colspan="3">Sin datos todavía.</td></tr>
-    {% endfor %}
-  </table>
+  <div class="tabla-scroll">
+    <table class="datos">
+      <tr><th>Producto</th><th>Unidades</th><th>Ventas</th></tr>
+      {% for p in top_productos %}
+        <tr>
+          <td>{{ p.nombre_producto }}</td>
+          <td>{{ p.unidades }}</td>
+          <td>${{ p.ventas|floatformat:"0g" }}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="3">Sin datos todavía.</td></tr>
+      {% endfor %}
+    </table>
+  </div>
+
   <h2>Canciones más pedidas (últimos 7 días)</h2>
-  <table border="1" cellpadding="6">
-    <tr><th>Canción</th><th>Veces pedida</th><th>Veces que sonó</th></tr>
-    {% for c in top_canciones %}
-      <tr>
-        <td>{{ c.cancion__titulo }} — {{ c.cancion__artista }}</td>
-        <td>{{ c.veces }}</td>
-        <td>{{ c.sonadas }}</td>
-      </tr>
-    {% empty %}
-      <tr><td colspan="3">Sin datos todavía.</td></tr>
-    {% endfor %}
-  </table>
+  <div class="tabla-scroll">
+    <table class="datos">
+      <tr><th>Canción</th><th>Veces pedida</th><th>Veces que sonó</th></tr>
+      {% for c in top_canciones %}
+        <tr>
+          <td>{{ c.cancion__titulo }} — {{ c.cancion__artista }}</td>
+          <td>{{ c.veces }}</td>
+          <td>{{ c.sonadas }}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="3">Sin datos todavía.</td></tr>
+      {% endfor %}
+    </table>
+  </div>
 
-  <p><a href="{% url 'reporte_semanal' %}">Descargar reporte semanal (CSV)</a></p>
+  <h2>Calificación por producto (últimos 30 días)</h2>
+  <div class="tabla-scroll">
+    <table class="datos">
+      <tr><th>Producto</th><th>Promedio</th><th>Calificaciones</th></tr>
+      {% for c in calificaciones %}
+        <tr>
+          <td>{{ c.detalle__producto__nombre }}</td>
+          <td>{{ c.promedio|floatformat:1 }} / 5</td>
+          <td>{{ c.cantidad }}{% if c.cantidad < 5 %} <em>(pocos datos)</em>{% endif %}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="3">Aún no hay calificaciones.</td></tr>
+      {% endfor %}
+    </table>
+  </div>
+  <p><small>La tabla va del mejor al peor calificado. Con menos de 5 calificaciones, el promedio puede engañar.</small></p>
 
-   <h2>Calificación por producto (últimos 30 días)</h2>
-  <table border="1" cellpadding="6">
-    <tr><th>Producto</th><th>Promedio</th><th>Calificaciones</th></tr>
-    {% for c in calificaciones %}
-      <tr>
-        <td>{{ c.detalle__producto__nombre }}</td>
-        <td>{{ c.promedio|floatformat:1 }} / 5</td>
-        <td>{{ c.cantidad }}{% if c.cantidad < 5 %} <em>(pocos datos)</em>{% endif %}</td>
-      </tr>
-    {% empty %}
-      <tr><td colspan="3">Aún no hay calificaciones.</td></tr>
-    {% endfor %}
-  </table>
-  <p><small>La tabla va del mejor al peor calificado. Con menos de 5
-  calificaciones, el promedio puede engañar.</small></p>
-
-</body>
-</html>
+  <a class="btn" href="{% url 'reporte_semanal' %}">Descargar reporte semanal (CSV)</a>
+{% endblock %}

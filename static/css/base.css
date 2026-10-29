@@ -110,3 +110,49 @@ form p { margin: 0 0 12px; }
 .helptext { display: block; font-size: .8rem; color: #555; margin-top: 2px; }
 .tarjeta form p { margin: 0 0 14px; }
 .tarjeta ul { padding-left: 20px; }
+
+
+.contenido.ancho { max-width: 1100px; }
+
+.acciones { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.acciones form { flex: 1 1 140px; }
+.acciones .btn { width: 100%; }
+
+.rejilla { display: block; }
+@media (min-width: 900px) {
+  .rejilla { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; align-items: start; }
+}
+
+.mesa { font-size: 1.3rem; font-weight: 700; color: var(--vino); margin: 4px 0; }
+.nota { background: #fdf0c8; color: #5b4300; border-radius: 8px; padding: 8px; margin: 8px 0; font-weight: 600; }
+
+.cifras { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 12px; }
+.cifra { background: var(--vino); color: var(--crema); border: 2px solid var(--oro); border-radius: 12px; padding: 12px; text-align: center; }
+.cifra strong { display: block; font-size: 1.4rem; color: var(--oro); }
+
+.tabla-scroll { overflow-x: auto; margin-bottom: 12px; }
+table.datos { width: 100%; border-collapse: collapse; background: var(--crema); color: var(--carbon); }
+table.datos th, table.datos td { padding: 10px; text-align: left; border-bottom: 1px solid #cfc8b4; }
+table.datos th { background: var(--vino); color: var(--crema); }
+
+.alerta-roja { border-left: 6px solid var(--rojo); }
+details.tarjeta summary { cursor: pointer; font-weight: 700; min-height: 44px; display: flex; align-items: center; }
+
+.tarjeta h1 { color: var(--vino); margin-top: 0; }
+.foto-detalle { width: 100%; max-height: 320px; object-fit: cover; border-radius: 10px; margin-bottom: 8px; }
+
+.btn-contorno { background: transparent; color: var(--oro); border: 2px solid var(--oro); }
+
+.hero { text-align: center; padding: 20px 8px 4px; }
+.hero img { width: 60%; max-width: 240px; background: #f7da6a; border-radius: 16px; padding: 12px 20px; }
+.eslogan { margin: 14px 0 20px; font-size: 1.05rem; }
+
+.servicios { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.pasos { counter-reset: paso; list-style: none; padding: 0; margin: 0; }
+.pasos li { counter-increment: paso; position: relative; padding: 4px 0 14px 46px; min-height: 40px; }
+.pasos li::before {
+  content: counter(paso); position: absolute; left: 0; top: 0;
+  width: 34px; height: 34px; border-radius: 50%;
+  background: var(--vino); color: var(--crema); font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}

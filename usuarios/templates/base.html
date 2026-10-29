@@ -9,7 +9,7 @@
 </head>
 <body>
   <header class="cabecera">
-     <a class="marca" href="{% if user.is_authenticated %}{% url 'inicio' %}{% else %}{% url 'menu' %}{% endif %}">
+    <a class="marca" href="{% url 'inicio' %}">
       <img class="marca-logo" src="{% static 'img/logo_foto.png' %}" alt="San Simón Pub">
     </a>
     <div class="cabecera-acciones">
@@ -25,7 +25,7 @@
     </div>
   </header>
 
-  <main class="contenido">
+  <main class="contenido {% block clase_contenido %}{% endblock %}">
     {% for m in messages %}
       <div class="aviso {{ m.tags }}">{{ m }}</div>
     {% endfor %}

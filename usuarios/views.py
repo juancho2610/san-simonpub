@@ -5,6 +5,7 @@ from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import redirect, render
+from django.conf import settings
 
 from .forms import RegistroClienteForm
 from .models import Rol
@@ -37,8 +38,10 @@ def registro(request):
     return render(request, 'usuarios/registro.html', {'form': form})
 
 
-@login_required
 def inicio(request):
+    if not request.user.is_authenticated:
+        return render(request, 'usuarios/inicio.html',
+                      {'negocio': settings.NEGOCIO})
     destinos = {
         Rol.ADMIN: 'panel_admin',
         Rol.SERVICIO: 'panel_servicio',

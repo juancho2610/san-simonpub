@@ -7,6 +7,7 @@ INICIO = ('Inicio', 'inicio', (
 
 SECCIONES = {
     'ANONIMO': [
+	('Inicio', 'inicio', ('inicio',)),
         ('Menú', 'menu', ('menu', 'detalle_producto')),
         ('Carrito', 'ver_carrito', ('ver_carrito', 'confirmar_pedido')),
         ('Ingresar', 'login', ('login', 'registro')),

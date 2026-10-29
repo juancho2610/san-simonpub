@@ -1,24 +1,19 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="csrf-token" content="{{ csrf_token }}">
-  <title>Reproductor - San Simón Pub</title>
-</head>
-<body>
-  <p><a href="{% url 'inicio' %}">&larr; Mi panel</a></p>
+{% extends 'base.html' %}
+{% block titulo %}Reproductor - San Simón Pub{% endblock %}
+{% block extra_head %}<meta name="csrf-token" content="{{ csrf_token }}">{% endblock %}
+{% block contenido %}
   <h1>Reproductor del bar</h1>
 
-  <button id="iniciar" type="button">Iniciar reproductor</button>
-  <p id="estado">Detenido. Pulsa "Iniciar" para empezar.</p>
-
-  <h2 id="titulo"></h2>
-  <audio id="audio" controls></audio>
-  <p><button id="omitir" type="button" disabled>Saltar esta canción</button></p>
+  <div class="tarjeta">
+    <button id="iniciar" class="btn btn-bloque" type="button">Iniciar reproductor</button>
+    <p id="estado">Detenido. Pulsa "Iniciar" para empezar.</p>
+    <h2 id="titulo"></h2>
+    <audio id="audio" controls style="width:100%"></audio>
+    <p><button id="omitir" class="btn btn-secundario btn-bloque" type="button" disabled>Saltar esta canción</button></p>
+  </div>
 
   <h2>Siguientes</h2>
-  <ol id="proximas"></ol>
+  <div class="tarjeta"><ol id="proximas"></ol></div>
 
   <script>
     const token = document.querySelector('meta[name="csrf-token"]').content;
@@ -96,5 +91,4 @@
       if (actualId !== null) avanzar('/personal/musica/omitir/', {id: actualId});
     });
   </script>
-</body>
-</html>
+{% endblock %}
