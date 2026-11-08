@@ -17,6 +17,7 @@ SECCIONES = {
         ('Menú', 'menu', ('menu', 'detalle_producto')),
         ('Música', 'catalogo_musical', ('catalogo_musical',)),
         ('Pedidos', 'mis_pedidos', ('mis_pedidos', 'detalle_pedido', 'comprobante')),
+        ('Asistente', 'asistente', ('asistente',)),
         ('Carrito', 'ver_carrito', ('ver_carrito', 'confirmar_pedido')),
     ],
     'SERVICIO': [

@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% block titulo %}Asistente - San Simón Pub{% endblock %}
+{% block extra_head %}<meta name="csrf-token" content="{{ csrf_token }}">{% endblock %}
+{% block contenido %}
+  <h1>Asistente</h1>
+
+  <div id="chat" class="chat" aria-live="polite">
+    <div class="burbuja asistente">
+      Hola, soy el asistente de San Simón Pub. Por ahora puedo ayudarte con
+      estos temas. Toca uno:
+    </div>
+  </div>
+
+  <div class="temas">
+    {% for clave, etiqueta in temas %}
+      <button class="btn btn-contorno tema" type="button" data-tema="{{ clave }}">{{ etiqueta }}</button>
+    {% endfor %}
+  </div>
+
+  <script>
+    const token = document.querySelector('meta[name="csrf-token"]').content;
+    const chat = document.getElementById('chat');
+
+    function burbuja(texto, clase, enlace) {
+      const div = document.createElement('div');
+      div.className = 'burbuja ' + clase;
+      div.textContent = texto;          // textContent: nunca se interpreta como HTML
+      if (enlace) {
+        div.appendChild(document.createElement('br'));
+        const a = document.createElement('a');
+        a.className = 'btn';
+        a.href = enlace.url;
+        a.textContent = enlace.etiqueta;
+        div.appendChild(a);
+      }
+      chat.appendChild(div);
+      div.scrollIntoView({behavior: 'smooth', block: 'end'});
+    }
+
+    document.querySelectorAll('.tema').forEach((boton) => {
+      boton.addEventListener('click', async () => {
+        burbuja(boton.textContent, 'usuario');
+        boton.disabled = true;
+        try {
+          const r = await fetch('{% url "asistente_tema" %}', {
+            method: 'POST',
+            headers: {'X-CSRFToken': token,
+                      'Content-Type': 'application/x-www-form-urlencoded'},
+            body: new URLSearchParams({tema: boton.dataset.tema}),
+          });
+          if (!r.ok) throw new Error('HTTP ' + r.status);
+          const datos = await r.json();
+          burbuja(datos.texto, 'asistente', datos.enlace);
+        } catch (e) {
+          burbuja('No pude responder en este momento. Intenta de nuevo.', 'asistente');
+        } finally {
+          boton.disabled = false;
+        }
+      });
+    });
+  </script>
+{% endblock %}

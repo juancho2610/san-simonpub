@@ -1,0 +1,143 @@
+[33mcommit 776c6bc3c8114e60a7b822bfe5e3c9976d1f1735[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m)[m
+Author: juancho2016 <juansi_angel@hotmail.com>
+Date:   Fri Nov 6 12:17:19 2026 -0500
+
+    Agrega la libreria anthropic
+
+[33mcommit 434090a3c1aabc2fe52991fa4f694a77435b09d9[m
+Author: juancho2016 <juansi_angel@hotmail.com>
+Date:   Thu Oct 29 18:33:42 2026 -0500
+
+    Pagina de inicio publica, detalle de producto y ajustes de navegacion
+
+[33mcommit e46cc41836ae57d2ea6c39c9c3b070194bdd75b7[m
+Author: juancho2016 <juansi_angel@hotmail.com>
+Date:   Thu Oct 29 18:29:23 2026 -0500
+
+    Pagina de inicio publica, detalle de producto y ajustes de navegacion
+
+[33mcommit 1e6f925852421f6197f15141ccde0ec9fbbed8eb[m
+Author: juancho2016 <juansi_angel@hotmail.com>
+Date:   Thu Oct 29 17:16:20 2026 -0500
+
+    Diseno base adaptable: navegacion por rol, logo y pantallas del cliente
+
+[33mcommit d7b246b0edff19f4e8737e565b12effcd7402c66[m
+Author: juancho2016 <juansi_angel@hotmail.com>
+Date:   Thu Oct 29 17:09:55 2026 -0500
+
+    Diseno base adaptable: navegacion por rol, estilos y pantallas del cliente
+
+[33mcommit b74cc70063757e36f00a05020d168a8191bc267e[m
+Author: juancho2016 <juansi_angel@hotmail.com>
+Date:   Wed Oct 28 14:50:47 2026 -0500
+
+    Anulacion de cuentas con motivo y exclusion de anuladas en estadisticas
+
+[33mcommit b7e2f6684142c0ddccee49ddcc52fee144a5c0ca[m
+Author: juancho2016 <juansi_angel@hotmail.com>
+Date:   Tue Oct 27 17:19:23 2026 -0500
+
+    Comprobante de consumo para el cliente y aviso de cuenta pendiente
+
+[33mcommit 54963433210a25e474d8542a8a95c0e6ae9365b2[m
+Author: juancho2016 <juansi_angel@hotmail.com>
+Date:   Tue Oct 27 16:27:09 2026 -0500
+
+    Cobro de cuentas: pagos multiples, pendientes y comprobante consecutivo
+
+[33mcommit c6f060feb834b527d46486b52b20664ccd66b9b7[m
+Author: juancho2016 <juansi_angel@hotmail.com>
+Date:   Mon Oct 26 17:48:13 2026 -0500
+
+    App cuentas: Cuenta, MetodoPago y secuencia de comprobantes
+
+[33mcommit a8265756c53ba2ea105d84fd78e915dad3c106b4[m
+Author: juancho2016 <juansi_angel@hotmail.com>
+Date:   Fri Oct 23 17:23:30 2026 -0500
+
+    Calificaciones de productos en pedidos entregados
+
+[33mcommit 4636208dc9286c27ad1e34304c20127e71ea7bfa[m
+Author: juancho2016 <juansi_angel@hotmail.com>
+Date:   Fri Oct 23 16:09:56 2026 -0500
+
+    Canciones mas pedidas y reporte semanal en CSV
+
+[33mcommit a080f6bd4fcf5fe4337051823e9b195a91dff456[m
+Author: juancho2016 <juansi_angel@hotmail.com>
+Date:   Thu Oct 22 17:11:19 2026 -0500
+
+    Reproductor de musica para el personal con cola automatica
+
+[33mcommit a983297d78e711d8cb171a200104e2f5c3113eaf[m
+Author: juancho2016 <juansi_angel@hotmail.com>
+Date:   Thu Oct 22 16:26:40 2026 -0500
+
+    Catalogo musical y solicitud de canciones con reglas de validacion
+
+[33mcommit e46b16e9e2bc4d5ea93d666ffe814c13ff1ce9d8[m
+Author: juancho2016 <juansi_angel@hotmail.com>
+Date:   Thu Oct 22 15:31:23 2026 -0500
+
+    App musica: Cancion y SolicitudMusical
+
+[33mcommit 70acc33478df2984620c2e3cde82736f93e1ef3e[m
+Author: juancho2016 <juansi_angel@hotmail.com>
+Date:   Thu Oct 22 12:59:35 2026 -0500
+
+    Panel de estadisticas del administrador
+
+[33mcommit ef676fd11fd03501c9418bc2d5970462dd0d92f2[m
+Author: juancho2016 <juansi_angel@hotmail.com>
+Date:   Wed Oct 21 18:48:16 2026 -0500
+
+    Tablero del personal con reglas de transicion de estados
+
+[33mcommit 1caa7e63e42b6f230bfab69c337dad14ac00b6ec[m
+Author: juancho2016 <juansi_angel@hotmail.com>
+Date:   Wed Oct 21 18:16:25 2026 -0500
+
+    App pedidos: Pedido y DetallePedido con precio congelado adicional confirma pedido
+
+[33mcommit e93211242608a922220bdcde5605a01e71246dc4[m
+Author: juancho2016 <juansi_angel@hotmail.com>
+Date:   Wed Oct 21 16:54:15 2026 -0500
+
+    App pedidos: Pedido y DetallePedido con precio congelado
+
+[33mcommit b46b5f3aa0d5b2f2c97a4b80568d0404eb6727f4[m
+Author: juancho2016 <juansi_angel@hotmail.com>
+Date:   Tue Oct 20 21:22:34 2026 -0500
+
+    Comando para generar el QR del menu
+
+[33mcommit 72a4020915d3a132dacc5a14e4b74fc03b26d010[m
+Author: juancho2016 <juansi_angel@hotmail.com>
+Date:   Tue Oct 20 21:02:13 2026 -0500
+
+    Menu publico para clientes: vista por categorias y detalle de producto
+
+[33mcommit 037986d39f44cfe1e9a7dfbf9e137d763d449475[m
+Author: juancho2016 <juansi_angel@hotmail.com>
+Date:   Tue Oct 20 20:10:27 2026 -0500
+
+    App menu: categorias, productos con foto opcional y datos de ejemplo
+
+[33mcommit 54da01f9902f72d26ce595a8c1f11702c65ddc54[m
+Author: juancho2016 <juansi_angel@hotmail.com>
+Date:   Tue Oct 20 18:44:45 2026 -0500
+
+    Registro de clientes, login por rol y paneles protegidos
+
+[33mcommit 09a5d8b3420220a83d8b7063cae16416516991c8[m
+Author: juancho2016 <juansi_angel@hotmail.com>
+Date:   Tue Oct 20 18:17:28 2026 -0500
+
+    App usuarios: modelo Usuario, tabla Rol y carga inicial de roles
+
+[33mcommit 3d96e6b7dfb6a0e0fc75a074e0972169bac9e9e3[m
+Author: juancho2016 <juansi_angel@hotmail.com>
+Date:   Tue Oct 20 16:38:15 2026 -0500
+
+    Proyecto San Simon Pub: Django 5.2 con MySQL

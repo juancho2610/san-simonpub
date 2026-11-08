@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'pedidos',
     'musica',
     'cuentas',
+    'asistente',
 ]
 
 MIDDLEWARE = [
@@ -167,10 +168,15 @@ STATICFILES_DIRS = [BASE_DIR / 'static']
 #Modelo del negocio
 NEGOCIO = {
     'nombre': 'San Simón Pub',
-    'eslogan': 'Música en vivo · Cerveza artesanal importada · Cocteles · Licores · Eventos',
-    'horario': 'Jueves a domingo, de 12:00 p. m. a 4:00 a. m.',
+    'eslogan': 'Música en vivo · Cerveza artesanal importada y nacional · Cocteles · Licores · Eventos en vivo',
+    'horario': 'Lunes a Domingo, de 12:00 p. m. a 4:00 a. m.',
     'direccion': '',    # pendiente: el dueño confirma el barrio y la dirección
     'telefono': '',     # pendiente: por ejemplo +573001234567
     'instagram': '',    # pendiente: dirección completa, con https://
     'facebook': '',     # pendiente: dirección completa, con https://
 }
+
+#Modelo del Asistente
+ASISTENTE_MAX_MENSAJES_DIA = 20
+ASISTENTE_MAX_CARACTERES = 400
+ASISTENTE_RETENCION_DIAS = 30
