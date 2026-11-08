@@ -164,3 +164,4 @@ details.tarjeta summary { cursor: pointer; font-weight: 700; min-height: 44px; d
 .burbuja .btn { margin-top: 8px; }
 .temas { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px; }
 @media (max-width: 400px) { .navegacion a { font-size: .72rem; padding: 8px 2px; } }
+.burbuja { white-space: pre-line; }
