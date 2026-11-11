@@ -10,7 +10,7 @@ SECCIONES = {
 	('Inicio', 'inicio', ('inicio',)),
         ('Menú', 'menu', ('menu', 'detalle_producto')),
         ('Carrito', 'ver_carrito', ('ver_carrito', 'confirmar_pedido')),
-        ('Ingresar', 'login', ('login', 'registro')),
+        ('Ingresar', 'login', ('login', 'registro', 'password_reset', 'password_reset_done', 'password_reset_confirm', 'password_reset_complete')),
     ],
     'CLIENTE': [
         INICIO,

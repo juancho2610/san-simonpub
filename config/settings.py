@@ -188,3 +188,8 @@ ASISTENTE_MAX_TOKENS = 1200
 ASISTENTE_TIMEOUT = 20
 ASISTENTE_HISTORIAL = 6
 ASISTENTE_MAX_MENSAJES_GLOBAL_DIA = 300
+
+#Modelo para recueprar contraseña mediante correo electronico
+EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'San Simón Pub <no-responder@localhost>')
+PASSWORD_RESET_TIMEOUT = 3600  # el enlace vence en 1 hora

@@ -1,6 +1,6 @@
 #Pestañas de navegacion
 from django.contrib.auth import views as auth_views
-from django.urls import path
+from django.urls import path, reverse_lazy
 
 from . import views
 
@@ -11,6 +11,18 @@ urlpatterns = [
         template_name='usuarios/login.html',
         redirect_authenticated_user=True), name='login'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
+    path('recuperar/', auth_views.PasswordResetView.as_view(
+        template_name='usuarios/password_reset_form.html',
+        email_template_name='usuarios/password_reset_email.txt',
+        subject_template_name='usuarios/password_reset_asunto.txt',
+        success_url=reverse_lazy('password_reset_done')), name='password_reset'),
+    path('recuperar/enviado/', auth_views.PasswordResetDoneView.as_view(
+        template_name='usuarios/password_reset_done.html'), name='password_reset_done'),
+    path('recuperar/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(
+        template_name='usuarios/password_reset_confirm.html',
+        success_url=reverse_lazy('password_reset_complete')), name='password_reset_confirm'),
+    path('recuperar/listo/', auth_views.PasswordResetCompleteView.as_view(
+        template_name='usuarios/password_reset_complete.html'), name='password_reset_complete'),
     path('panel/admin/', views.panel_admin, name='panel_admin'),
     path('panel/servicio/', views.panel_servicio, name='panel_servicio'),
     path('panel/cocina/', views.panel_cocina, name='panel_cocina'),
