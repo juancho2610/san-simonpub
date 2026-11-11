@@ -67,7 +67,7 @@ def mensaje(request):
 
     historial = _leer_historial(request)
     try:
-        respuesta, uso_ia, restantes = servicio.preguntar(
+        respuesta, uso_ia, restantes, productos = servicio.preguntar(
             request.user, texto, historial)
     except servicio.LimiteAlcanzado as limite:
         if str(limite) == 'global':
@@ -82,4 +82,4 @@ def mensaje(request):
         historial += [{'role': 'user', 'content': texto},
                       {'role': 'assistant', 'content': respuesta}]
         request.session[CLAVE_HISTORIAL] = historial[-settings.ASISTENTE_HISTORIAL:]
-    return JsonResponse({'texto': respuesta, 'ia': uso_ia, 'restantes': restantes})
+    return JsonResponse({'texto': respuesta, 'ia': uso_ia, 'restantes': restantes, 'productos': productos})

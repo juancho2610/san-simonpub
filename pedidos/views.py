@@ -8,7 +8,7 @@ from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.db.models import Avg, Count, DecimalField, ExpressionWrapper, F, Sum, Q
 from django.utils import timezone
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 
 from datetime import datetime, time, timedelta
 
@@ -34,7 +34,14 @@ def ver_carrito(request):
 def agregar(request, pk):
     producto = get_object_or_404(
         Producto, pk=pk, disponible=True, categoria__activa=True)
-    Carrito(request).agregar(producto)
+    carrito = Carrito(request)
+    carrito.agregar(producto)
+    if request.headers.get('X-Requested-With') == 'fetch':
+        return JsonResponse({
+            'ok': True,
+            'producto': producto.nombre,
+            'cantidad': sum(carrito.items.values()),
+        })
     messages.success(request, f'Agregaste "{producto.nombre}" al carrito.')
     return redirect('menu')
 

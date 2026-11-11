@@ -34,8 +34,38 @@
     const caja = document.getElementById('mensaje');
     const enviar = document.getElementById('enviar');
     const restantes = document.getElementById('restantes');
+    const urlCarrito = '{% url "ver_carrito" %}';
 
-    function burbuja(texto, clase, enlace) {
+    function actualizarContador(cantidad) {
+      const enlace = document.querySelector('.navegacion a[href="' + urlCarrito + '"]');
+      if (!enlace) return;
+      let marca = enlace.querySelector('.contador');
+      if (!marca) {
+        marca = document.createElement('span');
+        marca.className = 'contador';
+        enlace.append(' ', marca);
+      }
+      marca.textContent = cantidad;
+    }
+
+    async function agregarAlCarrito(producto, boton) {
+      boton.disabled = true;
+      try {
+        const r = await fetch(producto.url, {
+          method: 'POST',
+          headers: {'X-CSRFToken': token, 'X-Requested-With': 'fetch'},
+        });
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        const datos = await r.json();
+        boton.textContent = 'Agregado ✓ ' + producto.nombre;
+        actualizarContador(datos.cantidad);
+      } catch (e) {
+        boton.disabled = false;
+        boton.textContent = 'No se pudo agregar. Reintentar';
+      }
+    }
+
+    function burbuja(texto, clase, enlace, productos) {
       const div = document.createElement('div');
       div.className = 'burbuja ' + clase;
       div.textContent = texto;          // textContent: nunca se interpreta como HTML
@@ -46,6 +76,21 @@
         a.href = enlace.url;
         a.textContent = enlace.etiqueta;
         div.appendChild(a);
+      }
+      if (productos && productos.length) {
+        for (const p of productos) {
+          div.appendChild(document.createElement('br'));
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'btn';
+          b.textContent = 'Agregar ' + p.nombre + ' (' + p.precio + ')';
+          b.addEventListener('click', () => agregarAlCarrito(p, b));
+          div.appendChild(b);
+        }
+        const aviso = document.createElement('small');
+        aviso.textContent = 'Agrega una unidad por toque; ajusta la cantidad en el carrito.';
+        div.appendChild(document.createElement('br'));
+        div.appendChild(aviso);
       }
       chat.appendChild(div);
       div.scrollIntoView({behavior: 'smooth', block: 'end'});
@@ -92,7 +137,7 @@
         const r = await enviarPost('{% url "asistente_mensaje" %}', {mensaje: texto});
         pensando.remove();
         if (r.ok) {
-          burbuja(r.cuerpo.texto, 'asistente');
+          burbuja(r.cuerpo.texto, 'asistente', null, r.cuerpo.productos);
           restantes.textContent = 'Te quedan ' + r.cuerpo.restantes + ' mensajes hoy.';
         } else {
           burbuja(r.cuerpo.error || 'No pude responder. Intenta de nuevo.', 'asistente');

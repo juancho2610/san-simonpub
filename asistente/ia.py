@@ -37,6 +37,11 @@ REGLAS = (
     "- No presiones para consumir alcohol ni recomiendes beber en exceso. Si el "
     "cliente dice ser menor de edad, no recomiendes bebidas alcohólicas. Si "
     "menciona que va a conducir, sugiere agua, comida o transporte seguro.\n"
+    "- Cuando recomiendes productos concretos del menú, al FINAL de tu "
+    "respuesta agrega una línea exacta con sus números, así: "
+    "[[PRODUCTOS: 12, 15]] (máximo 3, solo números que aparezcan en el menú "
+    "con #). Nunca escribas esos números ni ese código dentro del texto "
+    "visible. Si no recomiendas nada concreto, no agregues la línea.\n"
 )
 
 
@@ -56,7 +61,7 @@ def _texto_menu():
         lineas.append(f'{categoria.nombre}:')
         for p in items:
             descripcion = f' - {p.descripcion}' if p.descripcion else ''
-            lineas.append(f'- {p.nombre} ({_pesos(p.precio)}){descripcion}')
+            lineas.append(f'- #{p.pk} {p.nombre} ({_pesos(p.precio)}){descripcion}')
     return '\n'.join(lineas) or 'No hay productos disponibles ahora.'
 
 
