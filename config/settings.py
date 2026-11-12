@@ -211,3 +211,8 @@ NEGOCIO.update({
 TURNSTILE_SITEKEY = os.getenv('TURNSTILE_SITEKEY', '')
 TURNSTILE_SECRET_KEY = os.getenv('TURNSTILE_SECRET_KEY', '')
 CAPTCHA_ACTIVO = os.getenv('CAPTCHA_ACTIVO', 'True') == 'True'
+
+
+#Modelo de Inicios de Sesion en General
+LOGIN_MAX_INTENTOS = 3
+LOGIN_VENTANA_MIN = 10

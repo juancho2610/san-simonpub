@@ -40,3 +40,14 @@ class Usuario(AbstractUser):
 
     def __str__(self):
         return f'{self.username} ({self.rol})'
+
+
+#Clase para de Intentos de Sesion
+class IntentoIngreso(models.Model):
+    """Un intento fallido de ingreso, para limitar los intentos repetidos."""
+    nombre = models.CharField(max_length=150, db_index=True)
+    creado = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        verbose_name = 'intento de ingreso fallido'
+        verbose_name_plural = 'intentos de ingreso fallidos'

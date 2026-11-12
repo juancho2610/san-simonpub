@@ -9,7 +9,7 @@ from django.core.exceptions import PermissionDenied
 from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
 
-from . import captcha
+from . import captcha, seguridad
 from .forms import RegistroClienteForm
 from .models import Rol
 
@@ -113,3 +113,14 @@ def panel_cliente(request):
     saldo = sum((c.saldo for c in pendientes), Decimal('0'))
     extra = {'saldo_pendiente': saldo} if saldo > 0 else {}
     return _panel(request, 'Bienvenido a San Simón Pub', extra)
+
+
+class LoginProtegido(LoginConCaptcha):
+    """Ingreso con captcha y límite de intentos fallidos."""
+
+    def post(self, request, *args, **kwargs):
+        if seguridad.bloqueado(request.POST.get('username', '')):
+            form = self.get_form()
+            form.add_error(None, seguridad.MENSAJE_BLOQUEO)
+            return self.form_invalid(form)
+        return super().post(request, *args, **kwargs)
