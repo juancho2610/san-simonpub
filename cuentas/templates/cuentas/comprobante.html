@@ -1,53 +1,70 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Comprobante No. {{ cuenta.numero }} - San Simón Pub</title>
-  <style>
-    @media print { .no-imprimir { display: none; } }
-  </style>
-</head>
-<body>
-  <p class="no-imprimir"><a href="{% url 'inicio' %}">&larr; Mi panel</a></p>
+{% extends 'base.html' %}
+{% load static %}
+{% block titulo %}Comprobante No. {{ cuenta.numero }} - San Simón Pub{% endblock %}
+{% block contenido %}
+  <div class="recibo">
+    <div class="recibo-cabecera">
+      <img src="{% static 'img/logo_circular.png' %}" alt="">
+      <h1>{{ negocio.nombre }}</h1>
+      {% if negocio.nit %}<p>NIT {{ negocio.nit }}</p>{% endif %}
+      {% if negocio.direccion %}<p>{{ negocio.direccion }}</p>{% endif %}
+      {% if negocio.telefono %}<p>Tel. {{ negocio.telefono }}</p>{% endif %}
+    </div>
 
-  <h1>San Simón Pub</h1>
-  <h2>Comprobante de consumo No. {{ cuenta.numero }}</h2>
-  <p><strong>Comprobante interno de consumo. No es factura electrónica de venta.</strong></p>
-  <p>Fecha: {{ fecha_pago|date:"d/m/Y H:i" }}<br>
-     Cliente: {{ cuenta.cliente.username }}</p>
+    <p class="recibo-titulo">COMPROBANTE DE CONSUMO</p>
+    <p class="recibo-numero">No. {{ cuenta.numero }}</p>
 
-  {% if cuenta.estado == 'ANULADA' %}
-    <p style="border:3px solid #b00; padding:8px;">
-      <strong>COMPROBANTE ANULADO</strong>
-      {% if es_personal %}<br>Motivo: {{ cuenta.motivo_anulacion }}{% endif %}
-    </p>
-  {% endif %}
+    {% if cuenta.estado == 'ANULADA' %}
+      <div class="recibo-anulado">
+        COMPROBANTE ANULADO
+        {% if es_personal %}<br><small>Motivo: {{ cuenta.motivo_anulacion }}</small>{% endif %}
+      </div>
+    {% endif %}
 
-  <h3>Consumo</h3>
-  {% for p in pedidos %}
-    <p>Pedido #{{ p.pk }}</p>
-    <ul>
-      {% for d in p.detalles.all %}
-        <li>{{ d.cantidad }} x {{ d.nombre_producto }} — ${{ d.subtotal|floatformat:0 }}</li>
+    <dl class="recibo-datos">
+      <div><dt>Fecha</dt><dd>{{ fecha_pago|date:"d/m/Y H:i" }}</dd></div>
+      <div><dt>Cliente</dt><dd>{{ cuenta.cliente.username }}</dd></div>
+    </dl>
+
+    <table class="recibo-tabla">
+      <tr><th>Cant.</th><th>Descripción</th><th class="num">Valor</th></tr>
+      {% for p in pedidos %}
+        <tr class="grupo"><td colspan="3">Pedido #{{ p.pk }}</td></tr>
+        {% for d in p.detalles.all %}
+          <tr>
+            <td>{{ d.cantidad }}</td>
+            <td>{{ d.nombre_producto }}</td>
+            <td class="num">${{ d.subtotal|floatformat:"0g" }}</td>
+          </tr>
+        {% endfor %}
       {% endfor %}
-    </ul>
-  {% endfor %}
+    </table>
 
-  <p><strong>Total: ${{ cuenta.total|floatformat:0 }} COP</strong></p>
-  <p><small>Los precios incluyen impuestos.</small></p>
+    <div class="recibo-total">
+      <span>TOTAL</span><span>${{ cuenta.total|floatformat:"0g" }} COP</span>
+    </div>
+    <p class="recibo-nota">Los precios incluyen impuestos.</p>
 
-  <h3>Pagos</h3>
-  <ul>
-    {% for pg in pagos %}
-      <li>{{ pg.metodo }} — ${{ pg.monto|floatformat:0 }}
-        {% if pg.referencia %}(ref. {{ pg.referencia }}){% endif %}</li>
-    {% endfor %}
-  </ul>
+    <h2>Pagos</h2>
+    <table class="recibo-tabla">
+      {% for pg in pagos %}
+        <tr>
+          <td>{{ pg.metodo }}{% if pg.referencia %} <small>(ref. {{ pg.referencia }})</small>{% endif %}</td>
+          <td class="num">${{ pg.monto|floatformat:"0g" }}</td>
+        </tr>
+      {% endfor %}
+    </table>
 
-  <p>¡Gracias por visitarnos!</p>
-  <p class="no-imprimir">
-    <button type="button" onclick="window.print()">Imprimir</button>
-  </p>
-</body>
-</html>
+    <p class="recibo-aviso">Comprobante interno de consumo. No es factura electrónica de venta.</p>
+    <p class="recibo-gracias">¡Gracias por visitarnos!</p>
+  </div>
+
+  <div class="acciones no-imprimir" style="max-width:420px;margin:0 auto">
+    <button class="btn" type="button" onclick="window.print()">Imprimir</button>
+    {% if es_personal %}
+      <a class="btn btn-contorno" href="{% url 'cuenta_detalle' cuenta.pk %}">Volver a la cuenta</a>
+    {% else %}
+      <a class="btn btn-contorno" href="{% url 'mis_pedidos' %}">Mis pedidos</a>
+    {% endif %}
+  </div>
+{% endblock %}

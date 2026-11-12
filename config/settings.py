@@ -193,3 +193,17 @@ ASISTENTE_MAX_MENSAJES_GLOBAL_DIA = 300
 EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'San Simón Pub <no-responder@localhost>')
 PASSWORD_RESET_TIMEOUT = 3600  # el enlace vence en 1 hora
+
+#Modelo del negocio
+NEGOCIO.update({
+    'bienvenida': "Bienvenido a San Simón Pub, un lugar para compartir con amigos y familia, con buena comida, buenas bebidas y música.",
+    'descripcion': (
+        "San Simón Pub es un gastrobar de barrio que combina cocina, bebidas y "
+        "entretenimiento. Encuentras entradas y platos principales, bebidas "
+        "naturales, cerveza artesanal importada y nacional, cocteles, licores y "
+        "whisky. Te acompañamos con música, partidos de fútbol y eventos en "
+        "fechas especiales, en un ambiente cercano y cómodo. Desde este sitio "
+        "puedes ver el menú, hacer tu pedido y pedir tus canciones desde el celular."),
+    'nit': '',  # pendiente: el dueño lo da si quiere que salga en el comprobante
+})
+

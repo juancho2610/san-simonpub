@@ -1,3 +1,5 @@
+from django.conf import settings
+from django.conf import settings
 from django.urls import reverse
 
 CLAVE_CARRITO = 'carrito'
@@ -65,4 +67,4 @@ def navegacion(request):
             'es_inicio': nombre_url == 'inicio',
             'contador': _cantidad_carrito(request) if nombre_url == 'ver_carrito' else 0,
         })
-    return {'nav_items': items}
+    return {'nav_items': items, 'negocio': settings.NEGOCIO}

@@ -4,13 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block titulo %}San Simón Pub{% endblock %}</title>
+  <link rel="icon" href="{% static 'img/logo_circular.png' %}">
   <link rel="stylesheet" href="{% static 'css/base.css' %}">
   {% block extra_head %}{% endblock %}
 </head>
 <body>
   <header class="cabecera">
     <a class="marca" href="{% url 'inicio' %}">
-      <img class="marca-logo" src="{% static 'img/logo_foto.png' %}" alt="San Simón Pub">
+      <img class="marca-logo" src="{% static 'img/logo_circular.png' %}" alt="">
+      <span class="marca-nombre">San Simón Pub</span>
     </a>
     <div class="cabecera-acciones">
       {% if user.is_authenticated %}
@@ -19,8 +21,6 @@
           {% csrf_token %}
           <button class="btn-texto" type="submit">Salir</button>
         </form>
-      {% else %}
-        <a class="btn-texto" href="{% url 'login' %}">Ingresar</a>
       {% endif %}
     </div>
   </header>

@@ -165,3 +165,44 @@ details.tarjeta summary { cursor: pointer; font-weight: 700; min-height: 44px; d
 .temas { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px; }
 @media (max-width: 400px) { .navegacion a { font-size: .72rem; padding: 8px 2px; } }
 .burbuja { white-space: pre-line; }
+
+/* --- Ajustes de logo y portada --- */
+.marca { display: flex; align-items: center; gap: 10px; }
+.marca-logo { height: 44px; width: 44px; padding: 0; background: none; border-radius: 50%; }
+.marca-nombre { color: var(--oro); font-weight: 700; font-size: 1.1rem; }
+@media (max-width: 340px) { .marca-nombre { display: none; } }
+.hero img { width: 200px; max-width: 60%; padding: 0; background: none; border-radius: 50%; }
+.hero h1 { margin: 12px 0 4px; }
+.servicios { grid-template-columns: repeat(2, 1fr); }
+.tarjeta h2 { margin-top: 0; color: var(--vino); }
+
+/* --- Comprobante digital --- */
+.recibo { max-width: 420px; margin: 0 auto 16px; background: #fff; color: #222; border-radius: 12px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,.4); }
+.recibo-cabecera { text-align: center; border-bottom: 2px dashed #bbb; padding-bottom: 12px; margin-bottom: 12px; }
+.recibo-cabecera img { width: 90px; height: 90px; }
+.recibo-cabecera h1 { color: var(--vino); font-size: 1.3rem; margin: 6px 0 2px; }
+.recibo-cabecera p { margin: 2px 0; font-size: .85rem; color: #555; }
+.recibo-titulo { text-align: center; font-weight: 700; letter-spacing: .08em; margin: 8px 0 0; }
+.recibo-numero { text-align: center; font-size: 1.3rem; font-weight: 700; color: var(--vino); margin: 0 0 8px; }
+.recibo-anulado { border: 3px solid var(--rojo); color: var(--rojo); text-align: center; font-weight: 700; padding: 8px; margin: 8px 0; border-radius: 8px; }
+.recibo-datos { display: grid; gap: 4px; margin: 8px 0 12px; }
+.recibo-datos div { display: flex; justify-content: space-between; gap: 12px; }
+.recibo-datos dt { color: #666; }
+.recibo-datos dd { margin: 0; font-weight: 600; text-align: right; }
+.recibo-tabla { width: 100%; border-collapse: collapse; font-size: .92rem; }
+.recibo-tabla th { text-align: left; border-bottom: 1px solid #999; padding: 4px 0; font-size: .8rem; color: #666; }
+.recibo-tabla td { padding: 4px 0; vertical-align: top; }
+.recibo-tabla .num, .recibo-tabla th.num { text-align: right; white-space: nowrap; }
+.recibo-tabla .grupo td { padding-top: 10px; font-size: .8rem; color: #666; font-weight: 700; }
+.recibo-total { display: flex; justify-content: space-between; border-top: 2px dashed #bbb; border-bottom: 2px dashed #bbb; padding: 10px 0; margin: 12px 0 4px; font-size: 1.2rem; font-weight: 700; }
+.recibo-nota { font-size: .78rem; color: #666; margin: 0 0 12px; }
+.recibo h2 { font-size: .95rem; margin: 12px 0 4px; color: var(--vino); }
+.recibo-aviso { font-size: .78rem; color: #555; border-top: 1px solid #ccc; padding-top: 10px; margin-top: 14px; text-align: center; }
+.recibo-gracias { text-align: center; font-weight: 600; margin: 8px 0 0; }
+
+@media print {
+  .cabecera, .navegacion, .no-imprimir { display: none !important; }
+  body { background: #fff; padding: 0; }
+  .contenido { padding: 0; max-width: none; }
+  .recibo { box-shadow: none; border-radius: 0; margin: 0 auto; }
+}

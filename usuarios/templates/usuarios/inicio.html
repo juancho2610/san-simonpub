@@ -3,12 +3,19 @@
 {% block titulo %}{{ negocio.nombre }}{% endblock %}
 {% block contenido %}
   <section class="hero">
-    <img src="{% static 'img/logo_foto.png' %}" alt="{{ negocio.nombre }}">
+    <img src="{% static 'img/logo_circular.png' %}" alt="{{ negocio.nombre }}">
+    <h1>{{ negocio.nombre }}</h1>
     <p class="eslogan">{{ negocio.eslogan }}</p>
     <a class="btn btn-bloque" href="{% url 'menu' %}">Ver el menú</a>
     <a class="btn btn-contorno btn-bloque" href="{% url 'login' %}">Ingresar</a>
     <a class="btn btn-contorno btn-bloque" href="{% url 'registro' %}">Crear cuenta</a>
   </section>
+
+  <div class="tarjeta">
+    <h2>Bienvenido</h2>
+    <p><strong>{{ negocio.bienvenida }}</strong></p>
+    <p>{{ negocio.descripcion }}</p>
+  </div>
 
   <h2>Qué encuentras aquí</h2>
   <div class="servicios">
