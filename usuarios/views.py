@@ -1,15 +1,18 @@
-#Vistas de usuarios
+from decimal import Decimal
 from functools import wraps
 
+from django.conf import settings
 from django.contrib.auth import login
+from django.contrib.auth import views as auth_views
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import redirect, render
-from django.conf import settings
+from django.urls import reverse_lazy
 
+from . import captcha
 from .forms import RegistroClienteForm
 from .models import Rol
-from decimal import Decimal
+
 
 def rol_requerido(*codigos):
     """El guardia: solo deja pasar a los roles indicados."""
@@ -29,13 +32,41 @@ def registro(request):
         return redirect('inicio')
     if request.method == 'POST':
         form = RegistroClienteForm(request.POST)
-        if form.is_valid():
+        if not captcha.verificar(request):
+            form.add_error(None, captcha.MENSAJE)
+        elif form.is_valid():
             usuario = form.save()
             login(request, usuario)
             return redirect('inicio')
     else:
         form = RegistroClienteForm()
     return render(request, 'usuarios/registro.html', {'form': form})
+
+
+class LoginConCaptcha(auth_views.LoginView):
+    template_name = 'usuarios/login.html'
+    redirect_authenticated_user = True
+
+    def post(self, request, *args, **kwargs):
+        if not captcha.verificar(request):
+            form = self.get_form()
+            form.add_error(None, captcha.MENSAJE)
+            return self.form_invalid(form)
+        return super().post(request, *args, **kwargs)
+
+
+class RecuperarConCaptcha(auth_views.PasswordResetView):
+    template_name = 'usuarios/password_reset_form.html'
+    email_template_name = 'usuarios/password_reset_email.txt'
+    subject_template_name = 'usuarios/password_reset_asunto.txt'
+    success_url = reverse_lazy('password_reset_done')
+
+    def post(self, request, *args, **kwargs):
+        if not captcha.verificar(request):
+            form = self.get_form()
+            form.add_error(None, captcha.MENSAJE)
+            return self.form_invalid(form)
+        return super().post(request, *args, **kwargs)
 
 
 def inicio(request):

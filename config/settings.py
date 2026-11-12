@@ -207,3 +207,7 @@ NEGOCIO.update({
     'nit': '',  # pendiente: el dueño lo da si quiere que salga en el comprobante
 })
 
+#Modelo de verificacion de navegador mediante CAPCHA
+TURNSTILE_SITEKEY = os.getenv('TURNSTILE_SITEKEY', '')
+TURNSTILE_SECRET_KEY = os.getenv('TURNSTILE_SECRET_KEY', '')
+CAPTCHA_ACTIVO = os.getenv('CAPTCHA_ACTIVO', 'True') == 'True'

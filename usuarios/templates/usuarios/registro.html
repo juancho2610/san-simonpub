@@ -6,6 +6,7 @@
     <form method="post">
       {% csrf_token %}
       {{ form.as_p }}
+      {% include 'usuarios/_captcha.html' %}
       <button class="btn btn-bloque" type="submit">Registrarme</button>
     </form>
   </div>

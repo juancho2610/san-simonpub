@@ -6,6 +6,7 @@
     <form method="post">
       {% csrf_token %}
       {{ form.as_p }}
+      {% include 'usuarios/_captcha.html' %}
       <button class="btn btn-bloque" type="submit">Entrar</button>
     </form>
     <p><a href="{% url 'password_reset' %}">¿Olvidaste tu contraseña?</a></p>
