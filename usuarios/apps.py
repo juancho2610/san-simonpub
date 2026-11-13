@@ -1,9 +1,9 @@
-#Configurar aplicaciones
 from django.apps import AppConfig
 
 
-#Clase de configurar Usuarios
 class UsuariosConfig(AppConfig):
-	default_auto_field = 'django.db.models.BigAutoField'
-	name = 'usuarios'
+    default_auto_field = 'django.db.models.BigAutoField'
+    name = 'usuarios'
 
+    def ready(self):
+        from . import senales  # noqa: F401  (conecta las señales)
