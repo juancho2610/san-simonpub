@@ -206,3 +206,57 @@ details.tarjeta summary { cursor: pointer; font-weight: 700; min-height: 44px; d
   .contenido { padding: 0; max-width: none; }
   .recibo { box-shadow: none; border-radius: 0; margin: 0 auto; }
 }
+
+/* --- Música --- */
+[hidden] { display: none !important; }
+.visualmente-oculto { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+.musica-rejilla, .reproductor-rejilla { display: block; }
+@media (min-width: 900px) {
+  .musica-rejilla { display: grid; grid-template-columns: 1fr 1.25fr; gap: 24px; align-items: start; }
+  .reproductor-rejilla { display: grid; grid-template-columns: 1.3fr 1fr; gap: 24px; align-items: start; }
+}
+
+.ahora { background: linear-gradient(135deg, var(--vino), #2a0a12); color: var(--crema); border: 2px solid var(--oro); border-radius: 14px; padding: 18px; margin-bottom: 12px; box-shadow: 0 2px 10px rgba(0,0,0,.45); }
+.ahora-fila { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; min-height: 28px; }
+.ahora-titulo { font-size: 1.5rem; font-weight: 800; color: var(--oro); line-height: 1.2; overflow-wrap: anywhere; }
+.ahora-artista { font-size: 1.05rem; margin-top: 2px; overflow-wrap: anywhere; }
+.ahora-vacio { margin: 8px 0 0; font-size: 1rem; }
+.ahora .btn-secundario { color: var(--crema); border-color: var(--crema); }
+.ahora label { color: var(--crema); }
+.ahora input[type="range"] { width: 100%; padding: 0; }
+.ahora.grande .ahora-titulo { font-size: 2rem; }
+@media (min-width: 900px) { .ahora.grande .ahora-titulo { font-size: 2.6rem; } }
+
+.estado-rep { display: inline-block; padding: 3px 12px; border-radius: 999px; font-size: .8rem; font-weight: 700; }
+.estado-rep.detenido { background: #555; color: #fff; }
+.estado-rep.sonando { background: var(--oro); color: var(--carbon-oscuro); }
+.estado-rep.pausado { background: #c9822b; color: #1b1100; }
+.estado-rep.espera { background: #3a4a52; color: var(--crema); }
+.estado-rep.error { background: var(--rojo); color: #fff; }
+
+.eq { display: inline-flex; align-items: flex-end; gap: 3px; height: 22px; }
+.eq i { display: block; width: 4px; height: 100%; background: var(--oro); border-radius: 2px; transform-origin: bottom; animation: eq-baile 1s ease-in-out infinite; }
+.eq i:nth-child(2) { animation-delay: .2s; }
+.eq i:nth-child(3) { animation-delay: .4s; }
+.eq i:nth-child(4) { animation-delay: .1s; }
+@keyframes eq-baile { 0%, 100% { transform: scaleY(.25); } 50% { transform: scaleY(1); } }
+@media (prefers-reduced-motion: reduce) { .eq i { animation: none; transform: scaleY(.6); } }
+
+.progreso { height: 8px; background: rgba(255,255,255,.2); border-radius: 999px; overflow: hidden; margin: 14px 0 4px; }
+.progreso-barra { height: 100%; width: 0; background: var(--oro); transition: width .3s linear; }
+.tiempos { display: flex; justify-content: space-between; font-size: .85rem; margin-bottom: 10px; }
+.controles { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0; }
+.controles .btn { flex: 1 1 140px; }
+
+.cola-lista { list-style: none; margin: 0 0 12px; padding: 0; counter-reset: n; }
+.cola-lista li { counter-increment: n; position: relative; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; background: var(--crema); color: var(--carbon); border-radius: 10px; padding: 10px 12px 10px 48px; margin-bottom: 8px; }
+.cola-lista li::before { content: counter(n); position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 28px; height: 28px; border-radius: 50%; background: var(--vino); color: var(--crema); font-weight: 700; font-size: .85rem; display: flex; align-items: center; justify-content: center; }
+.cola-lista li.siguiente { border-left: 5px solid var(--oro); }
+.cola-lista li.vacio { padding-left: 12px; }
+.cola-lista li.vacio::before { content: none; }
+.cola-texto { flex: 1 1 160px; overflow-wrap: anywhere; }
+.etiqueta { background: var(--oro); color: var(--carbon-oscuro); border-radius: 999px; padding: 1px 10px; font-size: .75rem; font-weight: 700; }
+.etiqueta.tuya { background: var(--vino); color: var(--crema); }
+.btn-chico { min-height: 36px; padding: 6px 12px; font-size: .85rem; }
+.ya-en-cola { color: #555; font-size: .9rem; }

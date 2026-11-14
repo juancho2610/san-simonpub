@@ -1,63 +1,187 @@
 {% extends 'base.html' %}
 {% block titulo %}Música - San Simón Pub{% endblock %}
+{% block extra_head %}<meta name="csrf-token" content="{{ csrf_token }}">{% endblock %}
+{% block clase_contenido %}ancho{% endblock %}
 {% block contenido %}
-  <h1>Pide tu canción</h1>
+  <h1>Música</h1>
+  <div id="aviso-musica" class="aviso" role="status" hidden></div>
 
-  {% if puede_pedir %}
-    <div class="tarjeta"><p>Tienes {{ mis_activas }} de {{ maximo }} canciones en la cola.</p></div>
-  {% else %}
-    <div class="aviso warning">
-      Para pedir canciones necesitas un pedido en mesa de las últimas {{ horas }} horas.
-      <a href="{% url 'menu' %}">Ver el menú</a>
-    </div>
-  {% endif %}
+  <div class="musica-rejilla">
+    <section>
+      <h2 class="visualmente-oculto">Sonando ahora</h2>
+      <div id="ahora" class="ahora"></div>
+      <div id="cupo" class="tarjeta"></div>
+      <h2>Siguientes</h2>
+      <ol id="cola" class="cola-lista"></ol>
+    </section>
 
-  <h2>Cola de reproducción</h2>
-  {% for s in cola %}
-    <div class="tarjeta fila">
-      <span>
-        {{ s.cancion.titulo }} — {{ s.cancion.artista }}
-        {% if s.estado == 'REPRODUCIENDO' %}<span class="estado">Sonando ahora</span>{% endif %}
-        {% if s.cliente_id == user.id %}<em>(tuya)</em>{% endif %}
-      </span>
-      {% if s.cliente_id == user.id and s.estado == 'EN_COLA' %}
-        <form method="post" action="{% url 'cancelar_cancion' s.pk %}">
-          {% csrf_token %}
-          <button class="btn btn-secundario" type="submit">Cancelar</button>
-        </form>
-      {% endif %}
-    </div>
-  {% empty %}
-    <div class="tarjeta"><p>La cola está vacía.</p></div>
-  {% endfor %}
+    <section>
+      <h2>Catálogo</h2>
+      <form method="get" class="tarjeta">
+        <label>Buscar
+          <input type="text" name="q" value="{{ q }}" placeholder="Título o artista">
+        </label>
+        <button class="btn btn-bloque" type="submit" style="margin-top:10px">Buscar</button>
+      </form>
 
-  <h2>Catálogo</h2>
-  <form method="get" class="tarjeta">
-    <label>Buscar
-      <input type="text" name="q" value="{{ q }}" placeholder="Título o artista">
-    </label>
-    <button class="btn btn-bloque" type="submit" style="margin-top:10px">Buscar</button>
-  </form>
+      {% for c in pagina %}
+        <div class="tarjeta fila" data-cancion="{{ c.pk }}">
+          <span>{{ c.titulo }} — {{ c.artista }}</span>
+          <span>
+            <form class="form-pedir" method="post" action="{% url 'pedir_cancion' c.pk %}">
+              {% csrf_token %}
+              <button class="btn" type="submit">Pedir</button>
+            </form>
+            <em class="ya-en-cola" hidden>Ya está en la cola</em>
+          </span>
+        </div>
+      {% empty %}
+        <div class="tarjeta"><p>No encontramos canciones.</p></div>
+      {% endfor %}
 
-  {% for c in pagina %}
-    <div class="tarjeta fila">
-      <span>{{ c.titulo }} — {{ c.artista }}</span>
-      {% if c.pk in en_cola_ids %}
-        <em>Ya está en la cola</em>
-      {% elif puede_pedir %}
-        <form method="post" action="{% url 'pedir_cancion' c.pk %}">
-          {% csrf_token %}
-          <button class="btn" type="submit">Pedir</button>
-        </form>
-      {% endif %}
-    </div>
-  {% empty %}
-    <div class="tarjeta"><p>No encontramos canciones.</p></div>
-  {% endfor %}
+      <p>
+        {% if pagina.has_previous %}<a href="?q={{ q|urlencode }}&page={{ pagina.previous_page_number }}">&larr; Anterior</a>{% endif %}
+        Página {{ pagina.number }} de {{ pagina.paginator.num_pages }}
+        {% if pagina.has_next %}<a href="?q={{ q|urlencode }}&page={{ pagina.next_page_number }}">Siguiente &rarr;</a>{% endif %}
+      </p>
+    </section>
+  </div>
 
-  <p>
-    {% if pagina.has_previous %}<a href="?q={{ q|urlencode }}&page={{ pagina.previous_page_number }}">&larr; Anterior</a>{% endif %}
-    Página {{ pagina.number }} de {{ pagina.paginator.num_pages }}
-    {% if pagina.has_next %}<a href="?q={{ q|urlencode }}&page={{ pagina.next_page_number }}">Siguiente &rarr;</a>{% endif %}
-  </p>
+  {{ estado|json_script:"estado-inicial" }}
+  <script>
+    const token = document.querySelector('meta[name="csrf-token"]').content;
+    const urlEstado = '{% url "estado_musica" %}';
+    const urlMenu = '{% url "menu" %}';
+    const urlCancelar = '{% url "cancelar_cancion" 0 %}'.replace(/0\/$/, '');
+    let estado = JSON.parse(document.getElementById('estado-inicial').textContent);
+    const ahora = document.getElementById('ahora');
+    const cupo = document.getElementById('cupo');
+    const cola = document.getElementById('cola');
+    const aviso = document.getElementById('aviso-musica');
+    let temporizadorAviso = null;
+
+    function el(tag, clase, texto) {
+      const e = document.createElement(tag);
+      if (clase) e.className = clase;
+      if (texto !== undefined) e.textContent = texto;   // textContent: nunca se interpreta como HTML
+      return e;
+    }
+
+    function pintarAhora() {
+      ahora.replaceChildren();
+      const fila = el('div', 'ahora-fila');
+      const s = estado.sonando;
+      if (s) {
+        fila.append(el('span', 'estado-rep sonando', 'Sonando ahora'));
+        const eq = el('span', 'eq');
+        eq.setAttribute('aria-hidden', 'true');
+        for (let i = 0; i < 4; i++) eq.append(document.createElement('i'));
+        fila.append(eq);
+        ahora.append(fila, el('div', 'ahora-titulo', s.titulo), el('div', 'ahora-artista', s.artista));
+        if (s.mia) ahora.append(el('p', 'ahora-vacio', 'Es tu canción.'));
+      } else {
+        fila.append(el('span', 'estado-rep espera', 'En silencio'));
+        ahora.append(fila, el('p', 'ahora-vacio', 'Todavía no hay una canción sonando.'));
+      }
+    }
+
+    function pintarCupo() {
+      cupo.replaceChildren();
+      if (estado.puede_pedir) {
+        cupo.append(el('p', '', 'Tienes ' + estado.mis_activas + ' de ' + estado.maximo + ' canciones en la cola.'));
+      } else {
+        const p = el('p', '', 'Para pedir canciones necesitas un pedido en mesa de las últimas ' + estado.horas + ' horas. ');
+        const a = el('a', '', 'Ver el menú');
+        a.href = urlMenu;
+        p.append(a);
+        cupo.append(p);
+      }
+    }
+
+    function pintarCola() {
+      cola.replaceChildren();
+      if (!estado.cola.length) {
+        cola.append(el('li', 'vacio', 'No hay canciones esperando.'));
+        return;
+      }
+      estado.cola.forEach((c, i) => {
+        const li = el('li', i === 0 ? 'siguiente' : '');
+        li.append(el('span', 'cola-texto', c.titulo + ' — ' + c.artista));
+        if (i === 0) li.append(el('span', 'etiqueta', 'Sigue'));
+        if (c.mia) {
+          li.append(el('span', 'etiqueta tuya', 'Tuya'));
+          const b = el('button', 'btn btn-secundario btn-chico', 'Cancelar');
+          b.type = 'button';
+          b.dataset.id = c.id;
+          li.append(b);
+        }
+        cola.append(li);
+      });
+    }
+
+    function pintarCatalogo() {
+      const enCola = new Set(estado.en_cola_ids);
+      const lleno = estado.mis_activas >= estado.maximo;
+      document.querySelectorAll('[data-cancion]').forEach((fila) => {
+        const yaEsta = enCola.has(Number(fila.dataset.cancion));
+        fila.querySelector('.form-pedir').hidden = yaEsta || !estado.puede_pedir || lleno;
+        fila.querySelector('.ya-en-cola').hidden = !yaEsta;
+      });
+    }
+
+    function pintar() { pintarAhora(); pintarCupo(); pintarCola(); pintarCatalogo(); }
+
+    function mostrarAviso(texto, ok) {
+      aviso.className = 'aviso ' + (ok ? 'success' : 'error');
+      aviso.textContent = texto;
+      aviso.hidden = false;
+      clearTimeout(temporizadorAviso);
+      temporizadorAviso = setTimeout(() => { aviso.hidden = true; }, 6000);
+    }
+
+    async function refrescar() {
+      try {
+        const r = await fetch(urlEstado, {headers: {'X-Requested-With': 'fetch'}});
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        estado = await r.json();
+        pintar();
+      } catch (e) { /* si falla, se reintenta en el siguiente ciclo */ }
+    }
+
+    async function enviar(url) {
+      try {
+        const r = await fetch(url, {
+          method: 'POST',
+          headers: {'X-CSRFToken': token, 'X-Requested-With': 'fetch'},
+        });
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        const datos = await r.json();
+        mostrarAviso(datos.mensaje, datos.ok);
+      } catch (e) {
+        mostrarAviso('No pudimos completar la acción. Intenta de nuevo.', false);
+      }
+      await refrescar();
+    }
+
+    document.addEventListener('submit', async (evento) => {
+      const form = evento.target.closest('.form-pedir');
+      if (!form) return;
+      evento.preventDefault();
+      const boton = form.querySelector('button');
+      boton.disabled = true;
+      await enviar(form.action);
+      boton.disabled = false;
+    });
+
+    cola.addEventListener('click', (evento) => {
+      const boton = evento.target.closest('button[data-id]');
+      if (!boton) return;
+      boton.disabled = true;
+      enviar(urlCancelar + boton.dataset.id + '/');
+    });
+
+    setInterval(() => { if (!document.hidden) refrescar(); }, 10000);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) refrescar(); });
+    pintar();
+  </script>
 {% endblock %}

@@ -124,3 +124,36 @@ class LoginProtegido(LoginConCaptcha):
             form.add_error(None, seguridad.MENSAJE_BLOQUEO)
             return self.form_invalid(form)
         return super().post(request, *args, **kwargs)
+
+#Clase para recuperar contraseña mediante enlace
+class RecuperarConEnlaceDev(RecuperarConCaptcha):
+    """Solo con DEBUG: deja el enlace a la vista para probar sin abrir la terminal."""
+
+    def form_valid(self, form):
+        from django.contrib.auth.tokens import default_token_generator
+        from django.urls import reverse
+        from django.utils.encoding import force_bytes
+        from django.utils.http import urlsafe_base64_encode
+
+        respuesta = super().form_valid(form)  # aquí se envía el correo, como siempre
+        if settings.DEBUG and settings.RECUPERAR_ENLACE_EN_PANTALLA:
+            enlaces = []
+            for usuario in form.get_users(form.cleaned_data['email']):
+                uid = urlsafe_base64_encode(force_bytes(usuario.pk))
+                token = default_token_generator.make_token(usuario)
+                enlaces.append(self.request.build_absolute_uri(
+                    reverse('password_reset_confirm', args=[uid, token])))
+            self.request.session['enlaces_recuperar_dev'] = enlaces
+        return respuesta
+
+
+class RecuperarEnviado(auth_views.PasswordResetDoneView):
+    template_name = 'usuarios/password_reset_done.html'
+
+    def get_context_data(self, **kwargs):
+        contexto = super().get_context_data(**kwargs)
+        # Siempre se vacía de la sesión; solo se muestra en modo de pruebas.
+        enlaces = self.request.session.pop('enlaces_recuperar_dev', [])
+        if settings.DEBUG and settings.RECUPERAR_ENLACE_EN_PANTALLA:
+            contexto['enlaces_dev'] = enlaces
+        return contexto

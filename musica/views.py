@@ -1,21 +1,54 @@
-#Configuracion de las vistas de musica en general
 from django.conf import settings
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db import transaction
 from django.db.models import Q
-from django.shortcuts import get_object_or_404, redirect, render
-from django.views.decorators.http import require_POST
 from django.http import JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_GET, require_POST
 
 from usuarios.models import Rol
 from usuarios.views import rol_requerido
 
 from .models import Cancion, SolicitudMusical
-from .services import (ACTIVAS, SolicitudNoPermitida,avanzar_cola, pedido_habilitante, solicitar_cancion, solicitudes_activas)
+from .services import (ACTIVAS, SolicitudNoPermitida, avanzar_cola,
+                       pedido_habilitante, solicitar_cancion)
 
-# Clase de catalogo de musica.
-# Acceso permito segun el rol asignado
+
+def _es_fetch(request):
+    return request.headers.get('X-Requested-With') == 'fetch'
+
+
+def _estado(usuario):
+    """Lo que ve un cliente: qué suena, qué sigue y qué puede pedir.
+    Nunca incluye el nombre de quien pidió cada canción."""
+    activas = list(
+        SolicitudMusical.objects.filter(estado__in=ACTIVAS)
+        .select_related('cancion').order_by('creada'))
+    sonando = next((s for s in activas
+                    if s.estado == SolicitudMusical.Estado.REPRODUCIENDO), None)
+    pendientes = [s for s in activas
+                  if s.estado == SolicitudMusical.Estado.EN_COLA]
+    return {
+        'sonando': None if sonando is None else {
+            'titulo': sonando.cancion.titulo,
+            'artista': sonando.cancion.artista,
+            'mia': sonando.cliente_id == usuario.id,
+        },
+        'cola': [{
+            'id': s.pk,
+            'titulo': s.cancion.titulo,
+            'artista': s.cancion.artista,
+            'mia': s.cliente_id == usuario.id,
+        } for s in pendientes],
+        'en_cola_ids': [s.cancion_id for s in activas],
+        'mis_activas': sum(1 for s in activas if s.cliente_id == usuario.id),
+        'maximo': settings.MUSICA_MAX_EN_COLA_POR_CLIENTE,
+        'puede_pedir': pedido_habilitante(usuario) is not None,
+        'horas': settings.MUSICA_VENTANA_PEDIDO_HORAS,
+    }
+
+
 @rol_requerido(Rol.CLIENTE)
 def catalogo(request):
     q = request.GET.get('q', '').strip()
@@ -24,20 +57,14 @@ def catalogo(request):
         canciones = canciones.filter(
             Q(titulo__icontains=q) | Q(artista__icontains=q))
     pagina = Paginator(canciones, 20).get_page(request.GET.get('page'))
+    return render(request, 'musica/catalogo.html', {
+        'pagina': pagina, 'q': q, 'estado': _estado(request.user)})
 
-    cola = (SolicitudMusical.objects.filter(estado__in=ACTIVAS)
-            .select_related('cancion').order_by('creada'))
-    contexto = {
-        'pagina': pagina,
-        'q': q,
-        'cola': cola,
-        'en_cola_ids': {s.cancion_id for s in cola},
-        'puede_pedir': pedido_habilitante(request.user) is not None,
-        'mis_activas': solicitudes_activas(request.user),
-        'maximo': settings.MUSICA_MAX_EN_COLA_POR_CLIENTE,
-        'horas': settings.MUSICA_VENTANA_PEDIDO_HORAS,
-    }
-    return render(request, 'musica/catalogo.html', contexto)
+
+@require_GET
+@rol_requerido(Rol.CLIENTE)
+def estado(request):
+    return JsonResponse(_estado(request.user))
 
 
 @require_POST
@@ -45,10 +72,12 @@ def catalogo(request):
 def pedir(request, pk):
     try:
         solicitud = solicitar_cancion(request.user, pk)
-        messages.success(
-            request, f'"{solicitud.cancion.titulo}" quedó en la cola.')
+        texto, ok = f'"{solicitud.cancion.titulo}" quedó en la cola.', True
     except SolicitudNoPermitida as error:
-        messages.error(request, str(error))
+        texto, ok = str(error), False
+    if _es_fetch(request):
+        return JsonResponse({'ok': ok, 'mensaje': texto})
+    (messages.success if ok else messages.error)(request, texto)
     return redirect('catalogo_musical')
 
 
@@ -62,18 +91,20 @@ def cancelar(request, pk):
         if solicitud.estado == SolicitudMusical.Estado.EN_COLA:
             solicitud.estado = SolicitudMusical.Estado.CANCELADA
             solicitud.save(update_fields=['estado'])
-            messages.success(request, 'Cancelaste tu canción.')
+            texto, ok = 'Cancelaste tu canción.', True
         else:
-            messages.error(request, 'Esa canción ya no se puede cancelar.')
+            texto, ok = 'Esa canción ya no se puede cancelar.', False
+    if _es_fetch(request):
+        return JsonResponse({'ok': ok, 'mensaje': texto})
+    (messages.success if ok else messages.error)(request, texto)
     return redirect('catalogo_musical')
-
 
 
 def _respuesta_cola(solicitud):
     proximas = (
         SolicitudMusical.objects
         .filter(estado=SolicitudMusical.Estado.EN_COLA)
-        .select_related('cancion').order_by('creada')[:5])
+        .select_related('cancion').order_by('creada')[:8])
     sonando = None
     if solicitud is not None:
         c = solicitud.cancion
@@ -96,6 +127,16 @@ def _id_enviado(request, campo):
 @rol_requerido(Rol.ADMIN, Rol.SERVICIO)
 def reproductor(request):
     return render(request, 'musica/reproductor.html')
+
+
+@require_GET
+@rol_requerido(Rol.ADMIN, Rol.SERVICIO)
+def api_estado(request):
+    """Solo consulta: nunca cambia la cola ni arranca canciones."""
+    actual = (SolicitudMusical.objects
+              .filter(estado=SolicitudMusical.Estado.REPRODUCIENDO)
+              .select_related('cancion').first())
+    return _respuesta_cola(actual)
 
 
 @require_POST

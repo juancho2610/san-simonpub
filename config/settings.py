@@ -213,6 +213,9 @@ TURNSTILE_SECRET_KEY = os.getenv('TURNSTILE_SECRET_KEY', '')
 CAPTCHA_ACTIVO = os.getenv('CAPTCHA_ACTIVO', 'True') == 'True'
 
 
-#Modelo de Inicios de Sesion en General
+#Modelo de Inicios de Sesion  para intentos de inicio
 LOGIN_MAX_INTENTOS = 3
 LOGIN_VENTANA_MIN = 10
+
+#Modelo de recuperar contraseña
+RECUPERAR_ENLACE_EN_PANTALLA = os.getenv('RECUPERAR_ENLACE_EN_PANTALLA', 'False') == 'True'

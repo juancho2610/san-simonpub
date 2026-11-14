@@ -1,30 +1,70 @@
 {% extends 'base.html' %}
 {% block titulo %}Reproductor - San Simón Pub{% endblock %}
 {% block extra_head %}<meta name="csrf-token" content="{{ csrf_token }}">{% endblock %}
+{% block clase_contenido %}ancho{% endblock %}
 {% block contenido %}
   <h1>Reproductor del bar</h1>
 
-  <div class="tarjeta">
-    <button id="iniciar" class="btn btn-bloque" type="button">Iniciar reproductor</button>
-    <p id="estado">Detenido. Pulsa "Iniciar" para empezar.</p>
-    <h2 id="titulo"></h2>
-    <audio id="audio" controls style="width:100%"></audio>
-    <p><button id="omitir" class="btn btn-secundario btn-bloque" type="button" disabled>Saltar esta canción</button></p>
-  </div>
+  <div class="reproductor-rejilla">
+    <section>
+      <div class="ahora grande">
+        <div class="ahora-fila">
+          <span id="badge" class="estado-rep detenido">Detenido</span>
+          <span id="eq" class="eq" aria-hidden="true" hidden><i></i><i></i><i></i><i></i></span>
+        </div>
+        <div id="titulo" class="ahora-titulo">Sin canción</div>
+        <div id="artista" class="ahora-artista"></div>
 
-  <h2>Siguientes</h2>
-  <div class="tarjeta"><ol id="proximas"></ol></div>
+        <div class="progreso" aria-hidden="true"><div id="barra" class="progreso-barra"></div></div>
+        <div class="tiempos"><span id="t-actual">0:00</span><span id="t-total">0:00</span></div>
+
+        <audio id="audio" preload="auto"></audio>
+
+        <div class="controles">
+          <button id="iniciar" class="btn" type="button">Iniciar reproductor</button>
+          <button id="pausa" class="btn btn-secundario" type="button" disabled>Pausa</button>
+          <button id="omitir" class="btn btn-secundario" type="button" disabled>Saltar</button>
+        </div>
+
+        <label for="volumen">Volumen</label>
+        <input id="volumen" type="range" min="0" max="1" step="0.05" value="1">
+        <p id="mensaje" class="ahora-vacio">Pulsa "Iniciar reproductor" para empezar.</p>
+      </div>
+    </section>
+
+    <section>
+      <h2>Siguientes</h2>
+      <ol id="proximas" class="cola-lista"></ol>
+    </section>
+  </div>
 
   <script>
     const token = document.querySelector('meta[name="csrf-token"]').content;
-    const audio = document.getElementById('audio');
-    const estado = document.getElementById('estado');
-    const titulo = document.getElementById('titulo');
-    const proximas = document.getElementById('proximas');
-    const btnIniciar = document.getElementById('iniciar');
-    const btnOmitir = document.getElementById('omitir');
+    const URL_SIGUIENTE = '{% url "api_siguiente" %}';
+    const URL_OMITIR = '{% url "api_omitir" %}';
+    const URL_ESTADO = '{% url "api_estado" %}';
+    const porId = (id) => document.getElementById(id);
+    const audio = porId('audio'), badge = porId('badge'), eq = porId('eq');
+    const titulo = porId('titulo'), artista = porId('artista'), barra = porId('barra');
+    const tActual = porId('t-actual'), tTotal = porId('t-total');
+    const mensaje = porId('mensaje'), proximas = porId('proximas');
+    const btnIniciar = porId('iniciar'), btnPausa = porId('pausa');
+    const btnOmitir = porId('omitir'), volumen = porId('volumen');
     let actualId = null;
     let temporizador = null;
+
+    function estadoVisual(clave, texto) {
+      badge.className = 'estado-rep ' + clave;
+      badge.textContent = texto;
+      eq.hidden = clave !== 'sonando';
+    }
+
+    function mmss(segundos) {
+      if (!isFinite(segundos)) return '0:00';
+      const m = Math.floor(segundos / 60);
+      const s = Math.floor(segundos % 60);
+      return m + ':' + String(s).padStart(2, '0');
+    }
 
     async function llamar(url, datos) {
       const r = await fetch(url, {
@@ -39,31 +79,50 @@
 
     function mostrarProximas(lista) {
       proximas.replaceChildren();
-      for (const texto of lista) {
+      if (!lista.length) {
         const li = document.createElement('li');
+        li.className = 'vacio';
+        li.textContent = 'No hay canciones en cola. Los clientes pueden pedirlas desde su celular.';
+        proximas.appendChild(li);
+        return;
+      }
+      lista.forEach((texto, i) => {
+        const li = document.createElement('li');
+        if (i === 0) li.className = 'siguiente';
         li.textContent = texto;   // textContent: nunca se interpreta como HTML
         proximas.appendChild(li);
-      }
+      });
     }
 
     function aplicar(datos) {
       mostrarProximas(datos.proximas);
       if (datos.sonando) {
         actualId = datos.sonando.id;
-        titulo.textContent = datos.sonando.titulo + ' — ' + datos.sonando.artista;
-        estado.textContent = 'Sonando ahora.';
+        titulo.textContent = datos.sonando.titulo;
+        artista.textContent = datos.sonando.artista;
+        mensaje.textContent = '';
         btnOmitir.disabled = false;
+        btnPausa.disabled = false;
+        btnPausa.textContent = 'Pausa';
         audio.src = datos.sonando.url;
         audio.play().catch(() => {
-          estado.textContent = 'El navegador bloqueó el sonido. Pulsa play.';
+          estadoVisual('pausado', 'Esperando clic');
+          mensaje.textContent = 'El navegador bloqueó el sonido. Pulsa "Reanudar".';
+          btnPausa.textContent = 'Reanudar';
         });
       } else {
         actualId = null;
-        titulo.textContent = '';
+        titulo.textContent = 'Sin canción';
+        artista.textContent = '';
         audio.removeAttribute('src');
+        barra.style.width = '0';
+        tActual.textContent = '0:00';
+        tTotal.textContent = '0:00';
         btnOmitir.disabled = true;
-        estado.textContent = 'La cola está vacía. Esperando canciones...';
-        temporizador = setTimeout(() => avanzar('/personal/musica/siguiente/', {}), 5000);
+        btnPausa.disabled = true;
+        estadoVisual('espera', 'Esperando canciones');
+        mensaje.textContent = 'La cola está vacía. Seguirá sola cuando alguien pida una canción.';
+        temporizador = setTimeout(() => avanzar(URL_SIGUIENTE, {}), 5000);
       }
     }
 
@@ -72,23 +131,57 @@
       try {
         aplicar(await llamar(url, datos));
       } catch (e) {
-        estado.textContent = 'Sin conexión con el servidor. Reintentando...';
-        temporizador = setTimeout(() => avanzar('/personal/musica/siguiente/', {}), 5000);
+        estadoVisual('error', 'Sin conexión');
+        mensaje.textContent = 'Sin conexión con el servidor. Reintentando...';
+        temporizador = setTimeout(() => avanzar(URL_SIGUIENTE, {}), 5000);
       }
+    }
+
+    async function refrescarCola() {
+      try {
+        const r = await fetch(URL_ESTADO, {headers: {'X-Requested-With': 'fetch'}});
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        mostrarProximas((await r.json()).proximas);
+      } catch (e) { /* se reintenta en el siguiente ciclo */ }
     }
 
     btnIniciar.addEventListener('click', () => {
       btnIniciar.disabled = true;
-      avanzar('/personal/musica/siguiente/', {});
+      mensaje.textContent = 'Conectando...';
+      avanzar(URL_SIGUIENTE, {});
+    });
+    btnPausa.addEventListener('click', () => {
+      if (actualId === null) return;
+      if (audio.paused) audio.play(); else audio.pause();
     });
     btnOmitir.addEventListener('click', () => {
-      if (actualId !== null) avanzar('/personal/musica/omitir/', {id: actualId});
+      if (actualId !== null) avanzar(URL_OMITIR, {id: actualId});
+    });
+    volumen.addEventListener('input', () => { audio.volume = Number(volumen.value); });
+
+    audio.addEventListener('play', () => {
+      estadoVisual('sonando', 'Sonando');
+      btnPausa.textContent = 'Pausa';
+    });
+    audio.addEventListener('pause', () => {
+      if (audio.ended || actualId === null) return;
+      estadoVisual('pausado', 'Pausado');
+      btnPausa.textContent = 'Reanudar';
+    });
+    audio.addEventListener('loadedmetadata', () => { tTotal.textContent = mmss(audio.duration); });
+    audio.addEventListener('timeupdate', () => {
+      tActual.textContent = mmss(audio.currentTime);
+      barra.style.width = (audio.duration ? (audio.currentTime / audio.duration) * 100 : 0) + '%';
     });
     audio.addEventListener('ended', () => {
-      avanzar('/personal/musica/siguiente/', {terminada: actualId ?? ''});
+      avanzar(URL_SIGUIENTE, {terminada: actualId ?? ''});
     });
     audio.addEventListener('error', () => {
-      if (actualId !== null) avanzar('/personal/musica/omitir/', {id: actualId});
+      if (actualId !== null) avanzar(URL_OMITIR, {id: actualId});
     });
+
+    setInterval(() => { if (!document.hidden) refrescarCola(); }, 10000);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) refrescarCola(); });
+    refrescarCola();
   </script>
 {% endblock %}

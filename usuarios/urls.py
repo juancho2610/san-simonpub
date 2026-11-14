@@ -8,9 +8,8 @@ urlpatterns = [
     path('registro/', views.registro, name='registro'),
     path('login/', views.LoginProtegido.as_view(), name='login'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
-    path('recuperar/', views.RecuperarConCaptcha.as_view(), name='password_reset'),
-    path('recuperar/enviado/', auth_views.PasswordResetDoneView.as_view(
-        template_name='usuarios/password_reset_done.html'), name='password_reset_done'),
+    path('recuperar/', views.RecuperarConEnlaceDev.as_view(), name='password_reset'),
+    path('recuperar/enviado/', views.RecuperarEnviado.as_view(), name='password_reset_done'),
     path('recuperar/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(
         template_name='usuarios/password_reset_confirm.html',
         success_url=reverse_lazy('password_reset_complete')), name='password_reset_confirm'),
