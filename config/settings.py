@@ -219,3 +219,14 @@ LOGIN_VENTANA_MIN = 10
 
 #Modelo de recuperar contraseña
 RECUPERAR_ENLACE_EN_PANTALLA = os.getenv('RECUPERAR_ENLACE_EN_PANTALLA', 'False') == 'True'
+
+# --- Producción ---
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+HTTPS_ACTIVO = (not DEBUG) and os.getenv('HTTPS_ACTIVO', 'True') == 'True'
+if HTTPS_ACTIVO:
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = int(os.getenv('SECURE_HSTS_SECONDS', '0'))
+CSRF_TRUSTED_ORIGINS = [o.strip() for o in os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',') if o.strip()]
