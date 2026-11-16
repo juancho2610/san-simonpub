@@ -170,8 +170,8 @@ NEGOCIO = {
     'nombre': 'San Simón Pub',
     'eslogan': 'Música en vivo · Cerveza artesanal importada y nacional · Cocteles · Licores · Eventos en vivo',
     'horario': 'Lunes a Domingo, de 12:00 p. m. a 4:00 a. m.',
-    'direccion': '',    # pendiente: el dueño confirma el barrio y la dirección
-    'telefono': '',     # pendiente: por ejemplo +573001234567
+    'direccion': 'Restaurante Bar, Cra. 17m 66 Sur-03, Bogotá',
+    'telefono': '+573003468464',
     'instagram': '',    # pendiente: dirección completa, con https://
     'facebook': '',     # pendiente: dirección completa, con https://
 }
