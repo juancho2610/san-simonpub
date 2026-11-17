@@ -26,6 +26,13 @@
   </header>
 
   <main class="contenido {% block clase_contenido %}{% endblock %}">
+    {% if mesa_qr %}
+      <div class="aviso info">Estás en la mesa {{ mesa_qr }}.
+        <form method="post" action="{% url 'olvidar_mesa' %}" style="display:inline">{% csrf_token %}
+          <button class="btn-texto" type="submit" style="color:inherit;border-color:currentColor">No es mi mesa</button>
+        </form>
+      </div>
+    {% endif %}
     {% for m in messages %}
       <div class="aviso {{ m.tags }}">{{ m }}</div>
     {% endfor %}

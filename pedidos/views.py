@@ -93,8 +93,12 @@ def confirmar(request):
             messages.success(request, 'Tu pedido fue recibido.')
             return redirect('detalle_pedido', pk=pedido.pk)
     else:
-        form = PedidoForm(
-            initial={'telefono_contacto': request.user.telefono})
+        from . import mesas
+        initial = {'telefono_contacto': request.user.telefono}
+        mesa_qr = mesas.actual(request)
+        if mesa_qr:
+            initial.update({'tipo': Pedido.Tipo.EN_MESA, 'mesa': mesa_qr})
+        form = PedidoForm(initial=initial)
 
     return render(request, 'pedidos/confirmar.html',
                   {'form': form, 'lineas': lineas, 'total': total})
@@ -329,3 +333,22 @@ def _calificaciones_por_producto(inicio, fin):
         .annotate(promedio=Avg('estrellas'), cantidad=Count('id'))
         .order_by('-promedio', '-cantidad', 'detalle__producto__nombre')
     )
+
+
+def mesa_qr(request, numero):
+    """Entrada desde el QR de una mesa: recuerda el número y abre el menú."""
+    from django.conf import settings as ajustes
+    from django.http import Http404
+
+    from . import mesas
+    if not 1 <= numero <= ajustes.MESAS_TOTAL:
+        raise Http404
+    mesas.fijar(request, numero)
+    return redirect('menu')
+
+
+@require_POST
+def olvidar_mesa(request):
+    from . import mesas
+    mesas.olvidar(request)
+    return redirect('menu')

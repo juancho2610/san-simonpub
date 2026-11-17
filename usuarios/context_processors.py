@@ -67,4 +67,10 @@ def navegacion(request):
             'es_inicio': nombre_url == 'inicio',
             'contador': _cantidad_carrito(request) if nombre_url == 'ver_carrito' else 0,
         })
-    return {'nav_items': items, 'negocio': settings.NEGOCIO, 'turnstile_sitekey': settings.TURNSTILE_SITEKEY}
+    return {'nav_items': items, 'negocio': settings.NEGOCIO, 'turnstile_sitekey': settings.TURNSTILE_SITEKEY,
+            'mesa_qr': _mesa(request)}
+
+
+def _mesa(request):
+    from pedidos import mesas
+    return mesas.actual(request)
