@@ -1,27 +1,44 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block titulo %}Menú - San Simón Pub{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'css/menu.css' %}">{% endblock %}
 {% block contenido %}
   <h1>Menú</h1>
+  {% if categorias %}
+    <nav class="menu-nav" aria-label="Categorías del menú">
+      {% for categoria in categorias %}
+        <a href="#cat-{{ categoria.pk }}">{{ categoria.nombre }}</a>
+      {% endfor %}
+    </nav>
+  {% endif %}
   {% for categoria in categorias %}
-    <h2>{{ categoria.nombre }}</h2>
-    {% for producto in categoria.productos.all %}
-      <div class="tarjeta producto">
-        {% if producto.foto %}
-          <img src="{{ producto.foto.url }}" alt="{{ producto.nombre }}" loading="lazy">
-        {% endif %}
-        <div class="info">
-          <h3><a href="{% url 'detalle_producto' producto.pk %}">{{ producto.nombre }}</a></h3>
-          <p>{{ producto.descripcion }}</p>
-          <div class="fila">
-            <span class="precio">${{ producto.precio|floatformat:"0g" }}</span>
-            <form method="post" action="{% url 'agregar_al_carrito' producto.pk %}">
-              {% csrf_token %}
-              <button class="btn" type="submit">Agregar</button>
-            </form>
+    <section class="menu-seccion" id="cat-{{ categoria.pk }}">
+      <h2>{{ categoria.nombre }}</h2>
+      <div class="menu-rejilla">
+        {% for producto in categoria.productos.all %}
+          <div class="tarjeta producto">
+            <a class="foto-enlace" href="{% url 'detalle_producto' producto.pk %}" tabindex="-1" aria-hidden="true">
+              {% if producto.foto %}
+                <img src="{{ producto.foto.url }}" alt="" loading="lazy">
+              {% else %}
+                <div class="sin-foto">{{ producto.nombre }}</div>
+              {% endif %}
+            </a>
+            <div class="info">
+              <h3><a href="{% url 'detalle_producto' producto.pk %}">{{ producto.nombre }}</a></h3>
+              <p>{{ producto.descripcion }}</p>
+              <div class="fila">
+                <span class="precio">${{ producto.precio|floatformat:"0g" }}</span>
+                <form method="post" action="{% url 'agregar_al_carrito' producto.pk %}">
+                  {% csrf_token %}
+                  <button class="btn" type="submit">Agregar</button>
+                </form>
+              </div>
+            </div>
           </div>
-        </div>
+        {% endfor %}
       </div>
-    {% endfor %}
+    </section>
   {% empty %}
     <div class="tarjeta"><p>El menú no está disponible en este momento.</p></div>
   {% endfor %}

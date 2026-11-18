@@ -1,0 +1,76 @@
+/* Barra de categorías del menú (fija debajo de la cabecera) */
+:root { --alto-cabecera: 56px; }
+
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+}
+
+.menu-nav {
+  position: sticky; top: var(--alto-cabecera); z-index: 9;
+  display: flex; gap: 8px; overflow-x: auto;
+  padding: 10px 16px; margin: 0 -16px 8px;
+  background: var(--carbon-oscuro);
+  border-bottom: 1px solid rgba(212, 169, 74, .4);
+  scrollbar-width: none;
+}
+.menu-nav::-webkit-scrollbar { display: none; }
+.menu-nav a {
+  flex: none; display: inline-flex; align-items: center;
+  min-height: 40px; padding: 6px 14px;
+  border: 1px solid var(--oro); border-radius: 999px;
+  color: var(--oro); font-weight: 600; text-decoration: none; white-space: nowrap;
+}
+.menu-nav a:hover, .menu-nav a:focus-visible {
+  background: var(--oro); color: var(--carbon-oscuro);
+}
+
+/* Al saltar a una sección, que no quede tapada por las barras fijas */
+.menu-seccion { scroll-margin-top: calc(var(--alto-cabecera) + 64px); }
+
+/* Tarjetas del menú: 2 columnas, foto grande arriba */
+.menu-rejilla {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px;
+}
+@media (min-width: 640px) {
+  .menu-rejilla { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+.menu-seccion .producto {
+  flex-direction: column; align-items: stretch;
+  padding: 0; margin: 0; gap: 0; overflow: hidden;
+}
+.menu-seccion .foto-enlace { display: block; }
+.menu-seccion .producto img,
+.menu-seccion .sin-foto {
+  display: block; width: 100%; height: auto; aspect-ratio: 4 / 3;
+  object-fit: cover; border-radius: 0;
+}
+.menu-seccion .sin-foto {
+  display: flex; align-items: center; justify-content: center;
+  padding: 8px; text-align: center; font-weight: 700;
+  background: linear-gradient(135deg, var(--vino), var(--carbon-oscuro));
+  color: var(--oro);
+}
+.menu-seccion .producto .info {
+  display: flex; flex-direction: column; flex: 1; padding: 10px 12px 12px;
+}
+.menu-seccion .producto h3 { font-size: 1rem; line-height: 1.2; margin: 0 0 4px; }
+.menu-seccion .producto h3 a { text-decoration: none; }
+.menu-seccion .producto p {
+  margin: 0 0 8px; font-size: .85rem;
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+}
+.menu-seccion .fila { margin-top: auto; flex-direction: column; align-items: stretch; gap: 8px; }
+.menu-seccion .fila .precio { font-size: 1.05rem; }
+.menu-seccion .fila form, .menu-seccion .fila .btn { width: 100%; }
+
+/* Títulos de sección estilo carta */
+.menu-seccion h2 {
+  display: flex; align-items: center; gap: 12px;
+  margin: 28px 0 12px; font-size: 1.3rem;
+  letter-spacing: .06em; text-transform: uppercase; color: var(--oro);
+}
+.menu-seccion h2::after {
+  content: ""; flex: 1; height: 2px;
+  background: linear-gradient(90deg, var(--oro), transparent);
+}
+
