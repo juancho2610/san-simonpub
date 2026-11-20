@@ -15,7 +15,7 @@
     {% if pedido.notas %}<p>Notas: {{ pedido.notas }}</p>{% endif %}
     <ul>
       {% for d in pedido.detalles.all %}
-        <li>{{ d.cantidad }} x {{ d.nombre_producto }} — ${{ d.subtotal|floatformat:"0g" }}</li>
+        <li>{{ d.cantidad }} x {{ d.nombre_producto }} — ${{ d.subtotal|floatformat:"0g" }}{% if d.opciones_texto %}<br><small>{{ d.opciones_texto }}</small>{% endif %}</li>
       {% endfor %}
     </ul>
     <p class="precio">Total: ${{ pedido.total|floatformat:"0g" }} COP</p>
@@ -32,6 +32,7 @@
       {% for d in pedido.detalles.all %}
         <div class="tarjeta">
           <strong>{{ d.nombre_producto }}</strong>
+          {% if d.opciones_texto %}<br><small>{{ d.opciones_texto }}</small>{% endif %}
           {% if d.calificacion %}
             <p>Tu calificación: {{ d.calificacion.estrellas }} de 5</p>
           {% else %}

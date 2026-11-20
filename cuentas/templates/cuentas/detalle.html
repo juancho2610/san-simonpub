@@ -39,7 +39,7 @@
       </div>
       <ul>
         {% for d in p.detalles.all %}
-          <li>{{ d.cantidad }} x {{ d.nombre_producto }} — ${{ d.subtotal|floatformat:"0g" }}</li>
+          <li>{{ d.cantidad }} x {{ d.nombre_producto }} — ${{ d.subtotal|floatformat:"0g" }}{% if d.opciones_texto %}<br><small>{{ d.opciones_texto }}</small>{% endif %}</li>
         {% endfor %}
       </ul>
     </div>

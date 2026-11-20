@@ -1,5 +1,7 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block titulo %}{{ producto.nombre }} - San Simón Pub{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'css/menu.css' %}">{% endblock %}
 {% block contenido %}
   <p><a href="{% url 'menu' %}">&larr; Volver al menú</a></p>
   <div class="tarjeta">
@@ -8,10 +10,42 @@
       <img class="foto-detalle" src="{{ producto.foto.url }}" alt="{{ producto.nombre }}">
     {% endif %}
     <p>{{ producto.descripcion }}</p>
-    <p class="precio">${{ producto.precio|floatformat:"0g" }} COP</p>
+    <p class="precio">{% if producto.precio_desde %}Desde {% endif %}${{ producto.precio|floatformat:"0g" }} COP</p>
     <p><small>Categoría: {{ producto.categoria }}</small></p>
     <form method="post" action="{% url 'agregar_al_carrito' producto.pk %}">
       {% csrf_token %}
+      {% if siguiente %}<input type="hidden" name="siguiente" value="{{ siguiente }}">{% endif %}
+      {% for g in producto.grupos.all %}
+        {% with ops=g.opciones_disponibles %}
+          {% if ops %}
+            <fieldset class="grupo-opciones">
+              <legend>{{ g.nombre|capfirst }}
+                {% if g.obligatorio %}<small>(obligatorio)</small>
+                {% elif g.max_selecciones > 1 %}<small>(hasta {{ g.max_selecciones }})</small>
+                {% else %}<small>(opcional)</small>{% endif %}
+              </legend>
+              {% if g.max_selecciones == 1 %}
+                {% if not g.obligatorio %}
+                  <label class="opcion"><input type="radio" name="grupo_{{ g.pk }}" value="" checked> <span class="texto">Ninguna</span></label>
+                {% endif %}
+                {% for o in ops %}
+                  <label class="opcion">
+                    <input type="radio" name="grupo_{{ g.pk }}" value="{{ o.pk }}"{% if g.obligatorio %} required{% endif %}>
+                    <span class="texto">{{ o.nombre|capfirst }}</span>{% if o.precio_extra %}<span class="extra">+${{ o.precio_extra|floatformat:"0g" }}</span>{% endif %}
+                  </label>
+                {% endfor %}
+              {% else %}
+                {% for o in ops %}
+                  <label class="opcion">
+                    <input type="checkbox" name="grupo_{{ g.pk }}" value="{{ o.pk }}">
+                    <span class="texto">{{ o.nombre|capfirst }}</span>{% if o.precio_extra %}<span class="extra">+${{ o.precio_extra|floatformat:"0g" }}</span>{% endif %}
+                  </label>
+                {% endfor %}
+              {% endif %}
+            </fieldset>
+          {% endif %}
+        {% endwith %}
+      {% endfor %}
       <button class="btn btn-bloque" type="submit">Agregar al carrito</button>
     </form>
   </div>

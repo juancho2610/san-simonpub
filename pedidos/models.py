@@ -111,12 +111,8 @@ class DetallePedido(models.Model):
         validators=[MinValueValidator(Decimal('0'))])
     cantidad = models.PositiveSmallIntegerField(
         default=1, validators=[MinValueValidator(1)])
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=['pedido', 'producto'], name='un_producto_por_pedido'),
-        ]
+    # Copia congelada de lo que eligió el cliente (ej. 'Proteína: Salmón').
+    opciones_texto = models.CharField(max_length=300, blank=True)
 
     def save(self, *args, **kwargs):
         # El servidor copia nombre y precio reales. No vienen del navegador.

@@ -61,7 +61,8 @@ def _productos_validos(ids):
     if not ids:
         return []
     por_id = {p.pk: p for p in Producto.objects.filter(
-        pk__in=ids, disponible=True, categoria__activa=True)}
+        pk__in=ids, disponible=True, categoria__activa=True
+    ).prefetch_related('grupos__opciones')}
     resultado = []
     for pk in ids:
         producto = por_id.get(pk)
@@ -71,6 +72,8 @@ def _productos_validos(ids):
                 'nombre': producto.nombre,
                 'precio': _pesos(producto.precio),
                 'url': reverse('agregar_al_carrito', args=[producto.pk]),
+                'tiene_opciones': producto.tiene_opciones,
+                'detalle_url': reverse('detalle_producto', args=[producto.pk]),
             })
     return resultado
 

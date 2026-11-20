@@ -7,7 +7,8 @@ from .models import Categoria, Producto
 #vista del menu para el cliente
 def menu_cliente(request):
     # Solo categorías activas y, dentro de ellas, productos disponibles.
-    productos = Producto.objects.filter(disponible=True)
+    productos = Producto.objects.filter(
+        disponible=True).prefetch_related('grupos__opciones')
     categorias = (
         Categoria.objects.filter(activa=True)
         .prefetch_related(Prefetch('productos', queryset=productos))
@@ -20,4 +21,7 @@ def menu_cliente(request):
 def detalle_producto(request, pk):
     producto = get_object_or_404(
         Producto, pk=pk, disponible=True, categoria__activa=True)
-    return render(request, 'menu/detalle_producto.html', {'producto': producto})
+    return render(request, 'menu/detalle_producto.html', {
+        'producto': producto,
+        'siguiente': request.GET.get('siguiente', ''),
+    })

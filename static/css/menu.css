@@ -74,3 +74,25 @@
   background: linear-gradient(90deg, var(--oro), transparent);
 }
 
+
+/* Opciones de un plato (página de detalle) */
+.grupo-opciones {
+  border: 1px solid rgba(31, 42, 46, .25); border-radius: 10px;
+  margin: 0 0 12px; padding: 8px 12px 10px;
+}
+.grupo-opciones legend { font-weight: 700; padding: 0 6px; color: var(--vino); }
+.grupo-opciones .opcion { display: flex; align-items: center; gap: 10px; min-height: 44px; }
+.grupo-opciones .extra { margin-left: auto; font-weight: 700; color: var(--vino); }
+.menu-seccion .fila a.btn { text-align: center; }
+
+/* Corrección de alineación de las opciones (pisa reglas generales de label/input) */
+.grupo-opciones .opcion {
+  display: flex; align-items: center; justify-content: flex-start;
+  gap: 12px; width: 100%; text-align: left; margin: 0;
+}
+.grupo-opciones .opcion input {
+  flex: none; width: 22px; height: 22px; min-height: 0; margin: 0;
+  accent-color: var(--vino);
+}
+.grupo-opciones .opcion .texto { flex: 1; text-align: left; }
+.grupo-opciones .opcion .extra { margin-left: auto; white-space: nowrap; text-align: right; }

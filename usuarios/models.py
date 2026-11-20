@@ -24,6 +24,7 @@ class Rol(models.Model):
 class Usuario(AbstractUser):
     email = models.EmailField('correo electrónico', unique=True)
     telefono = models.CharField(max_length=20, blank=True)
+    direccion = models.CharField('dirección de entrega', max_length=200, blank=True)
     rol = models.ForeignKey(
         Rol, on_delete=models.PROTECT, related_name='usuarios',
         null=True, blank=True,

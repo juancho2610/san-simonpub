@@ -8,6 +8,8 @@ from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.db.models import Avg, Count, DecimalField, ExpressionWrapper, F, Sum, Q
 from django.utils import timezone
+from django.urls import reverse
+from django.utils.http import url_has_allowed_host_and_scheme, urlencode
 from django.http import HttpResponse, JsonResponse
 
 from datetime import datetime, time, timedelta
@@ -16,6 +18,7 @@ from musica.models import SolicitudMusical
 from usuarios.models import Rol
 from usuarios.views import rol_requerido
 from menu.models import Producto
+from menu.opciones import validar_seleccion
 from cuentas.services import cuenta_abierta_para
 
 from .forms import PedidoForm
@@ -30,12 +33,37 @@ def ver_carrito(request):
                   {'lineas': lineas, 'total': total})
 
 
+def _siguiente_seguro(request):
+    """Ruta interna a la que volver tras agregar (nunca un sitio externo)."""
+    destino = request.POST.get('siguiente', '')
+    if destino.startswith('/') and url_has_allowed_host_and_scheme(
+            destino, allowed_hosts={request.get_host()},
+            require_https=request.is_secure()):
+        return destino
+    return ''
+
+
 @require_POST
 def agregar(request, pk):
     producto = get_object_or_404(
         Producto, pk=pk, disponible=True, categoria__activa=True)
     carrito = Carrito(request)
-    carrito.agregar(producto)
+    ids = []
+    for g in producto.grupos.all():
+        for v in request.POST.getlist(f'grupo_{g.pk}'):
+            if v.isdigit():
+                ids.append(int(v))
+    opciones, _texto, error = validar_seleccion(producto, ids)
+    if error:
+        if request.headers.get('X-Requested-With') == 'fetch':
+            return JsonResponse({'ok': False, 'error': error}, status=400)
+        messages.error(request, error)
+        destino = reverse('detalle_producto', args=[producto.pk])
+        siguiente = _siguiente_seguro(request)
+        if siguiente:
+            destino += '?' + urlencode({'siguiente': siguiente})
+        return redirect(destino)
+    carrito.agregar(producto, opciones=opciones)
     if request.headers.get('X-Requested-With') == 'fetch':
         return JsonResponse({
             'ok': True,
@@ -43,7 +71,7 @@ def agregar(request, pk):
             'cantidad': sum(carrito.items.values()),
         })
     messages.success(request, f'Agregaste "{producto.nombre}" al carrito.')
-    return redirect('menu')
+    return redirect(_siguiente_seguro(request) or 'menu')
 
 
 @require_POST
@@ -52,13 +80,13 @@ def actualizar(request, pk):
         cantidad = int(request.POST.get('cantidad', ''))
     except ValueError:
         return redirect('ver_carrito')
-    Carrito(request).fijar(pk, cantidad)
+    Carrito(request).fijar(request.POST.get('clave', str(pk)), cantidad)
     return redirect('ver_carrito')
 
 
 @require_POST
 def quitar(request, pk):
-    Carrito(request).quitar(pk)
+    Carrito(request).quitar(request.POST.get('clave', str(pk)))
     return redirect('ver_carrito')
 
 
@@ -85,16 +113,25 @@ def confirmar(request):
                 pedido.cliente = request.user
                 pedido.cuenta = cuenta_abierta_para(request.user)
                 pedido.save()
+                if (form.cleaned_data.get('guardar_direccion')
+                        and pedido.direccion_entrega):
+                    request.user.direccion = pedido.direccion_entrega
+                    request.user.save(update_fields=['direccion'])
                 for l in lineas:
                     DetallePedido.objects.create(
                         pedido=pedido, producto=l['producto'],
+                        precio_unitario=l['precio_unitario'],
+                        opciones_texto=l['opciones_texto'],
                         cantidad=l['cantidad'])
             carrito.vaciar()
             messages.success(request, 'Tu pedido fue recibido.')
             return redirect('detalle_pedido', pk=pedido.pk)
     else:
         from . import mesas
-        initial = {'telefono_contacto': request.user.telefono}
+        initial = {
+            'telefono_contacto': request.user.telefono,
+            'direccion_entrega': request.user.direccion,
+        }
         mesa_qr = mesas.actual(request)
         if mesa_qr:
             initial.update({'tipo': Pedido.Tipo.EN_MESA, 'mesa': mesa_qr})

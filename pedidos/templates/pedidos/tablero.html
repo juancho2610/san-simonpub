@@ -23,7 +23,7 @@
         {% if p.notas %}<div class="nota">Notas: {{ p.notas }}</div>{% endif %}
         <ul>
           {% for d in p.detalles.all %}
-            <li>{{ d.cantidad }} x {{ d.nombre_producto }}</li>
+            <li>{{ d.cantidad }} x {{ d.nombre_producto }}{% if d.opciones_texto %}<br><strong>{{ d.opciones_texto }}</strong>{% endif %}</li>
           {% endfor %}
         </ul>
         {% if p.opciones %}

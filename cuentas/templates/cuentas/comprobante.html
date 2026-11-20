@@ -33,7 +33,7 @@
         {% for d in p.detalles.all %}
           <tr>
             <td>{{ d.cantidad }}</td>
-            <td>{{ d.nombre_producto }}</td>
+            <td>{{ d.nombre_producto }}{% if d.opciones_texto %}<br><small>{{ d.opciones_texto }}</small>{% endif %}</td>
             <td class="num">${{ d.subtotal|floatformat:"0g" }}</td>
           </tr>
         {% endfor %}

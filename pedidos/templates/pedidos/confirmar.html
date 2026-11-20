@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block titulo %}Confirmar pedido - San Simón Pub{% endblock %}
 {% block contenido %}
   <h1>Confirmar pedido</h1>
@@ -7,7 +8,7 @@
     <h3>Resumen</h3>
     <ul>
       {% for l in lineas %}
-        <li>{{ l.cantidad }} x {{ l.producto.nombre }} — ${{ l.subtotal|floatformat:"0g" }}</li>
+        <li>{{ l.cantidad }} x {{ l.producto.nombre }} — ${{ l.subtotal|floatformat:"0g" }}{% if l.opciones_texto %}<br><small>{{ l.opciones_texto }}</small>{% endif %}</li>
       {% endfor %}
     </ul>
     <p class="precio">Total: ${{ total|floatformat:"0g" }} COP</p>
@@ -17,9 +18,18 @@
   <div class="tarjeta">
     <form method="post">
       {% csrf_token %}
-      {{ form.as_p }}
+      {{ form.non_field_errors }}
+      {{ form.tipo.as_field_group }}
+      <div data-tipos="EN_MESA">{{ form.mesa.as_field_group }}</div>
+      <div data-tipos="DOMICILIO">
+        {{ form.direccion_entrega.as_field_group }}
+        {{ form.guardar_direccion.as_field_group }}
+      </div>
+      <div data-tipos="RECOGER DOMICILIO">{{ form.telefono_contacto.as_field_group }}</div>
+      {{ form.notas.as_field_group }}
       <button class="btn btn-bloque" type="submit">Confirmar pedido</button>
     </form>
   </div>
   <p><a href="{% url 'ver_carrito' %}">&larr; Volver al carrito</a></p>
+  <script src="{% static 'js/confirmar.js' %}"></script>
 {% endblock %}

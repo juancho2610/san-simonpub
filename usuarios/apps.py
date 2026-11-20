@@ -6,4 +6,4 @@ class UsuariosConfig(AppConfig):
     name = 'usuarios'
 
     def ready(self):
-        from . import senales  # noqa: F401  (conecta las señales)
+        from . import checks, senales  # noqa: F401  (conecta señales y revisiones)

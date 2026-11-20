@@ -9,10 +9,12 @@
           <strong>{{ l.producto.nombre }}</strong>
           <span class="precio">${{ l.subtotal|floatformat:"0g" }}</span>
         </div>
-        <p>${{ l.producto.precio|floatformat:"0g" }} c/u</p>
+        {% if l.opciones_texto %}<p><small>{{ l.opciones_texto }}</small></p>{% endif %}
+        <p>${{ l.precio_unitario|floatformat:"0g" }} c/u</p>
         <div class="fila">
           <form method="post" action="{% url 'actualizar_carrito' l.producto.pk %}" class="fila">
             {% csrf_token %}
+            <input type="hidden" name="clave" value="{{ l.clave }}">
             <label>Cantidad
               <input type="number" name="cantidad" value="{{ l.cantidad }}" min="0" max="20">
             </label>
@@ -20,6 +22,7 @@
           </form>
           <form method="post" action="{% url 'quitar_del_carrito' l.producto.pk %}">
             {% csrf_token %}
+            <input type="hidden" name="clave" value="{{ l.clave }}">
             <button class="btn btn-secundario" type="submit">Quitar</button>
           </form>
         </div>

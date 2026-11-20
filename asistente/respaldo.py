@@ -1,3 +1,6 @@
+import re
+import unicodedata
+
 from django.conf import settings
 from django.db.models import Count, Q
 from django.urls import reverse
@@ -28,11 +31,12 @@ def _menu():
 
 
 def _pedir():
-    texto = ('1) Entra al menú y toca "Agregar" en lo que quieras. '
+    texto = ('1) Entra al menú y toca "Agregar" en lo que quieras; si el plato '
+             'tiene opciones (como la proteína de las pastas), toca "Elegir". '
              '2) Abre el carrito y toca "Confirmar pedido"; si no tienes '
              'sesión, te pedimos ingresar o crear una cuenta. '
              '3) Elige si lo quieres en mesa (con el número de tu mesa), '
-             'para recoger o a domicilio. '
+             'para recoger o a domicilio (en ese caso te pedimos la dirección). '
              '4) Sigue el estado de tu pedido en la sección Pedidos.')
     return texto, ('ver_carrito', 'Ir al carrito')
 
@@ -80,3 +84,40 @@ def responder(tema):
     if enlace:
         enlace = {'url': reverse(enlace[0]), 'etiqueta': enlace[1]}
     return {'texto': texto, 'enlace': enlace}
+
+
+# Palabras clave (sin tildes) para elegir una respuesta fija según la pregunta.
+_PALABRAS = {
+    'musica': ['musica', 'cancion', 'canciones', 'cola', 'tocar', 'sonar', 'artista'],
+    'pagar': ['pagar', 'pago', 'cuenta', 'efectivo', 'datafono', 'tarjeta',
+              'transferencia', 'propina', 'dividir'],
+    'horario': ['horario', 'hora', 'horas', 'abren', 'cierran', 'abierto',
+                'direccion', 'donde', 'ubicacion', 'telefono', 'contacto', 'llegar'],
+    'pedir': ['pedir', 'pedido', 'ordenar', 'domicilio', 'recoger', 'carrito'],
+    'menu': ['menu', 'carta', 'platos', 'comida', 'precio', 'precios',
+             'hamburguesa', 'hamburguesas', 'cerveza', 'cervezas', 'bebida', 'bebidas',
+             'licor', 'licores', 'trago', 'tragos', 'pasta', 'pastas', 'alitas',
+             'picada', 'lasana', 'lasanas', 'tienen', 'venden',
+             'recomienda', 'recomendar'],
+}
+
+
+def _normalizar(texto):
+    sin_tildes = unicodedata.normalize('NFD', texto.lower())
+    return ''.join(c for c in sin_tildes if unicodedata.category(c) != 'Mn')
+
+
+def responder_por_texto(texto):
+    """Busca la respuesta fija que mejor encaja con la pregunta. None si ninguna."""
+    palabras = set(re.findall(r'[a-z0-9]+', _normalizar(texto)))
+    mejor, puntos = None, 0
+    for tema, claves in _PALABRAS.items():
+        coincidencias = sum(1 for c in claves if c in palabras)
+        if coincidencias > puntos:
+            mejor, puntos = tema, coincidencias
+    if mejor is None:
+        return None
+    respuesta = responder(mejor)
+    if respuesta is not None:
+        respuesta['tema'] = mejor
+    return respuesta
