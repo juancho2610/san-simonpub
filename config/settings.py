@@ -230,3 +230,17 @@ if HTTPS_ACTIVO:
     CSRF_COOKIE_SECURE = True
     SECURE_HSTS_SECONDS = int(os.getenv('SECURE_HSTS_SECONDS', '0'))
 CSRF_TRUSTED_ORIGINS = [o.strip() for o in os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',') if o.strip()]
+
+#Musica desde la plataforma de Youtube
+YOUTUBE_API_KEY = os.getenv('YOUTUBE_API_KEY', '')
+YOUTUBE_BUSQUEDAS_MAX_DIA = int(os.getenv('YOUTUBE_BUSQUEDAS_MAX_DIA', '90'))
+YOUTUBE_BUSQUEDAS_MAX_POR_CLIENTE = int(os.getenv('YOUTUBE_BUSQUEDAS_MAX_POR_CLIENTE', '10'))
+YOUTUBE_CACHE_HORAS = int(os.getenv('YOUTUBE_CACHE_HORAS', '24'))
+
+# YouTube exige que el reproductor incrustado se identifique (Referer).
+# El valor por defecto de Django ('same-origin') lo oculta.
+SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
+
+# Canciones subidas como archivo: apagado. La música se pide por YouTube.
+# (Subir canciones descargadas expone al negocio en derechos de autor.)
+MUSICA_ARCHIVOS_ACTIVO = os.getenv('MUSICA_ARCHIVOS_ACTIVO', 'False') == 'True'

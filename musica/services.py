@@ -8,7 +8,7 @@ from django.utils import timezone
 from pedidos.models import Pedido
 from usuarios.models import Usuario
 
-from .models import Cancion, SolicitudMusical
+from .models import BusquedaYoutube, Cancion, SolicitudMusical
 
 ACTIVAS = [SolicitudMusical.Estado.EN_COLA,
            SolicitudMusical.Estado.REPRODUCIENDO]
@@ -44,6 +44,8 @@ def solicitar_cancion(usuario, cancion_id):
         cancion = (Cancion.objects.select_for_update()
                    .filter(pk=cancion_id, activa=True).first())
         if cancion is None:
+            raise SolicitudNoPermitida('Esa canción no está disponible.')
+        if not cancion.youtube_id and not settings.MUSICA_ARCHIVOS_ACTIVO:
             raise SolicitudNoPermitida('Esa canción no está disponible.')
 
         pedido = pedido_habilitante(usuario)
@@ -100,3 +102,28 @@ def avanzar_cola(terminada_id=None,
         siguiente.inicio = timezone.now()
         siguiente.save(update_fields=['estado', 'inicio'])
         return siguiente
+
+
+def cancion_desde_youtube(video_id):
+    """Convierte un video elegido en Cancion. Solo acepta ids que salieron de
+    una búsqueda reciente: así el título y el canal son los de YouTube y no
+    los que mande el navegador."""
+    desde = timezone.now() - timedelta(hours=settings.YOUTUBE_CACHE_HORAS)
+    for busqueda in BusquedaYoutube.objects.filter(creada__gte=desde):
+        for r in busqueda.resultados:
+            if r.get('id') == video_id:
+                cancion, _ = Cancion.objects.get_or_create(
+                    youtube_id=video_id,
+                    defaults={'titulo': r['titulo'], 'artista': r['canal']})
+                return cancion
+    raise SolicitudNoPermitida(
+        'Esa canción ya no está disponible. Búscala de nuevo.')
+
+
+def solicitar_desde_youtube(usuario, video_id):
+    if pedido_habilitante(usuario) is None:
+        raise SolicitudNoPermitida(
+            'Para pedir canciones necesitas un pedido en mesa de las '
+            f'últimas {settings.MUSICA_VENTANA_PEDIDO_HORAS} horas.')
+    cancion = cancion_desde_youtube(video_id)
+    return solicitar_cancion(usuario, cancion.pk)

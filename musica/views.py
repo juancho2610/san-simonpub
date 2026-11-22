@@ -12,7 +12,9 @@ from usuarios.views import rol_requerido
 
 from .models import Cancion, SolicitudMusical
 from .services import (ACTIVAS, SolicitudNoPermitida, avanzar_cola,
-                       pedido_habilitante, solicitar_cancion)
+                       pedido_habilitante, solicitar_cancion,
+                       solicitar_desde_youtube)
+from .youtube import YoutubeNoDisponible, buscar
 
 
 def _es_fetch(request):
@@ -42,6 +44,8 @@ def _estado(usuario):
             'mia': s.cliente_id == usuario.id,
         } for s in pendientes],
         'en_cola_ids': [s.cancion_id for s in activas],
+        'en_cola_youtube': [s.cancion.youtube_id for s in activas
+                            if s.cancion.youtube_id],
         'mis_activas': sum(1 for s in activas if s.cliente_id == usuario.id),
         'maximo': settings.MUSICA_MAX_EN_COLA_POR_CLIENTE,
         'puede_pedir': pedido_habilitante(usuario) is not None,
@@ -52,13 +56,14 @@ def _estado(usuario):
 @rol_requerido(Rol.CLIENTE)
 def catalogo(request):
     q = request.GET.get('q', '').strip()
-    canciones = Cancion.objects.filter(activa=True)
+    canciones = Cancion.objects.filter(activa=True).exclude(archivo='')
     if q:
         canciones = canciones.filter(
             Q(titulo__icontains=q) | Q(artista__icontains=q))
     pagina = Paginator(canciones, 20).get_page(request.GET.get('page'))
     return render(request, 'musica/catalogo.html', {
-        'pagina': pagina, 'q': q, 'estado': _estado(request.user)})
+        'pagina': pagina, 'q': q, 'estado': _estado(request.user),
+        'archivos_activo': settings.MUSICA_ARCHIVOS_ACTIVO})
 
 
 @require_GET
@@ -109,7 +114,9 @@ def _respuesta_cola(solicitud):
     if solicitud is not None:
         c = solicitud.cancion
         sonando = {'id': solicitud.pk, 'titulo': c.titulo,
-                   'artista': c.artista, 'url': c.archivo.url}
+                   'artista': c.artista,
+                   'url': c.archivo.url if c.archivo else None,
+                   'youtube_id': c.youtube_id}
     return JsonResponse({
         'sonando': sonando,
         'proximas': [f'{s.cancion.titulo} — {s.cancion.artista}'
@@ -149,6 +156,43 @@ def api_siguiente(request):
 @require_POST
 @rol_requerido(Rol.ADMIN, Rol.SERVICIO)
 def api_omitir(request):
-    solicitud = avanzar_cola(
-        _id_enviado(request, 'id'), SolicitudMusical.Estado.OMITIDA)
+    omitida = _id_enviado(request, 'id')
+    if request.POST.get('no_disponible') == '1' and omitida is not None:
+        # El video falló en el reproductor: no se vuelve a ofrecer.
+        for c in Cancion.objects.filter(
+                solicitudes__pk=omitida, youtube_id__isnull=False):
+            c.activa = False
+            c.save(update_fields=['activa'])
+    solicitud = avanzar_cola(omitida, SolicitudMusical.Estado.OMITIDA)
     return _respuesta_cola(solicitud)
+
+
+@require_GET
+@rol_requerido(Rol.CLIENTE)
+def buscar_youtube(request):
+    # Buscar gasta cupo del bar: solo quien puede pedir puede buscar.
+    if pedido_habilitante(request.user) is None:
+        return JsonResponse({'ok': False, 'mensaje':
+            'Para buscar canciones necesitas un pedido en mesa de las '
+            f'últimas {settings.MUSICA_VENTANA_PEDIDO_HORAS} horas.'})
+    try:
+        resultados = buscar(request.GET.get('q', ''), request.user)
+    except YoutubeNoDisponible as error:
+        return JsonResponse({'ok': False, 'mensaje': str(error)})
+    bloqueadas = set(Cancion.objects.filter(
+        youtube_id__in=[r['id'] for r in resultados], activa=False
+    ).values_list('youtube_id', flat=True))
+    resultados = [r for r in resultados if r['id'] not in bloqueadas]
+    return JsonResponse({'ok': True, 'resultados': resultados})
+
+
+@require_POST
+@rol_requerido(Rol.CLIENTE)
+def pedir_youtube(request):
+    try:
+        solicitud = solicitar_desde_youtube(
+            request.user, request.POST.get('video_id', ''))
+        texto, ok = f'"{solicitud.cancion.titulo}" quedó en la cola.', True
+    except SolicitudNoPermitida as error:
+        texto, ok = str(error), False
+    return JsonResponse({'ok': ok, 'mensaje': texto})

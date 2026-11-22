@@ -15,6 +15,8 @@
         <div id="titulo" class="ahora-titulo">Sin canción</div>
         <div id="artista" class="ahora-artista"></div>
 
+        <div id="video-caja" class="video-caja" hidden><div id="yt-player"></div></div>
+
         <div class="progreso" aria-hidden="true"><div id="barra" class="progreso-barra"></div></div>
         <div class="tiempos"><span id="t-actual">0:00</span><span id="t-total">0:00</span></div>
 
@@ -50,8 +52,14 @@
     const mensaje = porId('mensaje'), proximas = porId('proximas');
     const btnIniciar = porId('iniciar'), btnPausa = porId('pausa');
     const btnOmitir = porId('omitir'), volumen = porId('volumen');
+    const caja = porId('video-caja');
     let actualId = null;
     let temporizador = null;
+
+    // --- YouTube ---
+    let modoYT = false;        // true mientras suena un video de YouTube
+    let yt = null;             // el reproductor incrustado (se crea una sola vez)
+    let ytPromesa = null;      // carga del script de YouTube (una sola vez)
 
     function estadoVisual(clave, texto) {
       badge.className = 'estado-rep ' + clave;
@@ -94,6 +102,111 @@
       });
     }
 
+    // ---------- Modo archivo (<audio>) ----------
+    function detenerYouTube() {
+      modoYT = false;
+      caja.hidden = true;
+      if (yt && yt.stopVideo) { try { yt.stopVideo(); } catch (e) {} }
+    }
+
+    function tocarArchivo(url) {
+      detenerYouTube();
+      audio.src = url;
+      audio.play().catch(() => {
+        estadoVisual('pausado', 'Esperando clic');
+        mensaje.textContent = 'El navegador bloqueó el sonido. Pulsa "Reanudar".';
+        btnPausa.textContent = 'Reanudar';
+      });
+    }
+
+    // ---------- Modo YouTube ----------
+    function cargarYT() {
+      if (ytPromesa) return ytPromesa;
+      ytPromesa = new Promise((resolve, reject) => {
+        window.onYouTubeIframeAPIReady = () => resolve();
+        const s = document.createElement('script');
+        s.src = 'https://www.youtube.com/iframe_api';
+        s.onerror = () => reject(new Error('no cargó'));
+        document.head.appendChild(s);
+      });
+      return ytPromesa;
+    }
+
+    function crearYT(videoId) {
+      yt = new YT.Player('yt-player', {
+        width: '100%', height: '100%', videoId: videoId,
+        playerVars: {autoplay: 1, playsinline: 1, rel: 0, origin: location.origin},
+        events: {
+          onReady: (e) => { e.target.setVolume(Number(volumen.value) * 100); e.target.playVideo(); },
+          onStateChange: alCambiarEstadoYT,
+          onError: alFallarYT,
+        },
+      });
+    }
+
+    function alCambiarEstadoYT(e) {
+      if (!modoYT) return;
+      const E = YT.PlayerState;
+      if (e.data === E.ENDED) {
+        avanzar(URL_SIGUIENTE, {terminada: actualId ?? ''});
+      } else if (e.data === E.PLAYING) {
+        estadoVisual('sonando', 'Sonando');
+        btnPausa.textContent = 'Pausa';
+        mensaje.textContent = '';
+      } else if (e.data === E.PAUSED) {
+        estadoVisual('pausado', 'Pausado');
+        btnPausa.textContent = 'Reanudar';
+      }
+    }
+
+    function alFallarYT() {
+      // Video bloqueado, borrado o que no permite incrustarse: se salta solo.
+      if (!modoYT || actualId === null) return;
+      mensaje.textContent = 'Ese video no se puede reproducir. Pasando a la siguiente...';
+      avanzar(URL_OMITIR, {id: actualId, no_disponible: '1'});
+    }
+
+    async function tocarYouTube(s) {
+      const miId = s.id;
+      if (!/^[\w-]{11}$/.test(s.youtube_id || '')) {
+        avanzar(URL_OMITIR, {id: miId});
+        return;
+      }
+      audio.pause();
+      audio.removeAttribute('src');
+      modoYT = true;
+      caja.hidden = false;           // visible ANTES de crear el reproductor
+      try {
+        await cargarYT();
+      } catch (e) {
+        ytPromesa = null;
+        estadoVisual('error', 'Sin YouTube');
+        mensaje.textContent = 'No se pudo cargar YouTube. Revisa la conexión; reintentando...';
+        temporizador = setTimeout(() => { if (actualId === miId) tocarYouTube(s); }, 10000);
+        return;
+      }
+      if (actualId !== miId) return;   // la cola cambió mientras cargaba
+      if (!yt) crearYT(s.youtube_id); else yt.loadVideoById(s.youtube_id);
+      // Si a los 5 s no arrancó, el navegador bloqueó el sonido: pedir un clic.
+      setTimeout(() => {
+        if (modoYT && actualId === miId && yt && yt.getPlayerState
+            && [-1, 5].includes(yt.getPlayerState())) {
+          estadoVisual('pausado', 'Esperando clic');
+          mensaje.textContent = 'El navegador bloqueó el sonido. Pulsa "Reanudar".';
+          btnPausa.textContent = 'Reanudar';
+        }
+      }, 5000);
+    }
+
+    // Barra de progreso del video (el <audio> la mueve solo, YouTube no).
+    setInterval(() => {
+      if (!modoYT || !yt || !yt.getDuration) return;
+      const total = yt.getDuration(), actual = yt.getCurrentTime();
+      tActual.textContent = mmss(actual);
+      tTotal.textContent = mmss(total);
+      barra.style.width = (total ? (actual / total) * 100 : 0) + '%';
+    }, 500);
+
     function aplicar(datos) {
       mostrarProximas(datos.proximas);
       if (datos.sonando) {
@@ -104,14 +217,11 @@
         btnOmitir.disabled = false;
         btnPausa.disabled = false;
         btnPausa.textContent = 'Pausa';
-        audio.src = datos.sonando.url;
-        audio.play().catch(() => {
-          estadoVisual('pausado', 'Esperando clic');
-          mensaje.textContent = 'El navegador bloqueó el sonido. Pulsa "Reanudar".';
-          btnPausa.textContent = 'Reanudar';
-        });
+        if (datos.sonando.youtube_id) tocarYouTube(datos.sonando);
+        else tocarArchivo(datos.sonando.url);
       } else {
         actualId = null;
+        detenerYouTube();
         titulo.textContent = 'Sin canción';
         artista.textContent = '';
         audio.removeAttribute('src');
@@ -152,31 +262,43 @@
     });
     btnPausa.addEventListener('click', () => {
       if (actualId === null) return;
+      if (modoYT) {
+        if (!yt || !yt.getPlayerState) return;
+        if (yt.getPlayerState() === 1) yt.pauseVideo(); else yt.playVideo();
+        return;
+      }
       if (audio.paused) audio.play(); else audio.pause();
     });
     btnOmitir.addEventListener('click', () => {
       if (actualId !== null) avanzar(URL_OMITIR, {id: actualId});
     });
-    volumen.addEventListener('input', () => { audio.volume = Number(volumen.value); });
+    volumen.addEventListener('input', () => {
+      audio.volume = Number(volumen.value);
+      if (yt && yt.setVolume) yt.setVolume(Number(volumen.value) * 100);
+    });
 
     audio.addEventListener('play', () => {
+      if (modoYT) return;
       estadoVisual('sonando', 'Sonando');
       btnPausa.textContent = 'Pausa';
     });
     audio.addEventListener('pause', () => {
-      if (audio.ended || actualId === null) return;
+      if (modoYT || audio.ended || actualId === null) return;
       estadoVisual('pausado', 'Pausado');
       btnPausa.textContent = 'Reanudar';
     });
     audio.addEventListener('loadedmetadata', () => { tTotal.textContent = mmss(audio.duration); });
     audio.addEventListener('timeupdate', () => {
+      if (modoYT) return;
       tActual.textContent = mmss(audio.currentTime);
       barra.style.width = (audio.duration ? (audio.currentTime / audio.duration) * 100 : 0) + '%';
     });
     audio.addEventListener('ended', () => {
+      if (modoYT) return;
       avanzar(URL_SIGUIENTE, {terminada: actualId ?? ''});
     });
     audio.addEventListener('error', () => {
+      if (modoYT) return;
       if (actualId !== null) avanzar(URL_OMITIR, {id: actualId});
     });
 

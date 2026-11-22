@@ -6,9 +6,9 @@ from .models import Cancion, SolicitudMusical
 #Acceso solo  para la administracion
 @admin.register(Cancion)
 class CancionAdmin(admin.ModelAdmin):
-    list_display = ('titulo', 'artista', 'activa')
+    list_display = ('titulo', 'artista', 'youtube_id', 'activa')
     list_editable = ('activa',)
-    search_fields = ('titulo', 'artista')
+    search_fields = ('titulo', 'artista', 'youtube_id')
 
 
 @admin.register(SolicitudMusical)

@@ -16,6 +16,18 @@
     </section>
 
     <section>
+      <div id="yt-buscador" class="tarjeta" hidden>
+        <h2>Busca cualquier canción</h2>
+        <form id="form-yt">
+          <label>Canción o artista
+            <input type="text" id="yt-q" maxlength="100" placeholder="Ej: Bohemian Rhapsody Queen" autocomplete="off">
+          </label>
+          <button id="yt-buscar" class="btn btn-bloque" type="submit" style="margin-top:10px">Buscar</button>
+        </form>
+        <div id="yt-resultados"></div>
+      </div>
+
+      {% if archivos_activo %}
       <h2>Catálogo</h2>
       <form method="get" class="tarjeta">
         <label>Buscar
@@ -44,6 +56,7 @@
         Página {{ pagina.number }} de {{ pagina.paginator.num_pages }}
         {% if pagina.has_next %}<a href="?q={{ q|urlencode }}&page={{ pagina.next_page_number }}">Siguiente &rarr;</a>{% endif %}
       </p>
+      {% endif %}
     </section>
   </div>
 
@@ -53,6 +66,8 @@
     const urlEstado = '{% url "estado_musica" %}';
     const urlMenu = '{% url "menu" %}';
     const urlCancelar = '{% url "cancelar_cancion" 0 %}'.replace(/0\/$/, '');
+    const urlBuscarYT = '{% url "buscar_youtube" %}';
+    const urlPedirYT = '{% url "pedir_youtube" %}';
     let estado = JSON.parse(document.getElementById('estado-inicial').textContent);
     const ahora = document.getElementById('ahora');
     const cupo = document.getElementById('cupo');
@@ -129,7 +144,42 @@
       });
     }
 
-    function pintar() { pintarAhora(); pintarCupo(); pintarCola(); pintarCatalogo(); }
+    function pintarYT() {
+      document.getElementById('yt-buscador').hidden = !estado.puede_pedir;
+      const enCola = new Set(estado.en_cola_youtube || []);
+      const lleno = estado.mis_activas >= estado.maximo;
+      document.querySelectorAll('#yt-resultados [data-video]').forEach((fila) => {
+        const yaEsta = enCola.has(fila.dataset.video);
+        fila.querySelector('button').hidden = yaEsta || lleno;
+        fila.querySelector('.ya-en-cola').hidden = !yaEsta;
+      });
+    }
+
+    function pintarResultadosYT(lista) {
+      const cont = document.getElementById('yt-resultados');
+      cont.replaceChildren();
+      if (!lista.length) {
+        cont.append(el('p', '', 'No encontramos resultados. Prueba con otras palabras.'));
+        return;
+      }
+      lista.forEach((r) => {
+        const fila = el('div', 'fila');
+        fila.style.cssText = 'padding:8px 0;border-top:1px solid rgba(255,255,255,.12)';
+        fila.dataset.video = r.id;
+        fila.append(el('span', '', r.titulo + ' — ' + r.canal));
+        const acciones = el('span');
+        const boton = el('button', 'btn', 'Pedir');
+        boton.type = 'button';
+        const ya = el('em', 'ya-en-cola', 'Ya está en la cola');
+        ya.hidden = true;
+        acciones.append(boton, ya);
+        fila.append(acciones);
+        cont.append(fila);
+      });
+      pintarYT();
+    }
+
+    function pintar() { pintarAhora(); pintarCupo(); pintarCola(); pintarCatalogo(); pintarYT(); }
 
     function mostrarAviso(texto, ok) {
       aviso.className = 'aviso ' + (ok ? 'success' : 'error');
@@ -182,6 +232,49 @@
 
     setInterval(() => { if (!document.hidden) refrescar(); }, 10000);
     document.addEventListener('visibilitychange', () => { if (!document.hidden) refrescar(); });
+    document.getElementById('form-yt').addEventListener('submit', async (evento) => {
+      evento.preventDefault();
+      const q = document.getElementById('yt-q').value.trim();
+      if (q.length < 2) { mostrarAviso('Escribe al menos 2 letras para buscar.', false); return; }
+      const boton = document.getElementById('yt-buscar');
+      boton.disabled = true;
+      boton.textContent = 'Buscando...';
+      try {
+        const r = await fetch(urlBuscarYT + '?q=' + encodeURIComponent(q),
+                              {headers: {'X-Requested-With': 'fetch'}});
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        const datos = await r.json();
+        if (datos.ok) pintarResultadosYT(datos.resultados);
+        else mostrarAviso(datos.mensaje, false);
+      } catch (e) {
+        mostrarAviso('No pudimos buscar. Intenta de nuevo.', false);
+      }
+      boton.disabled = false;
+      boton.textContent = 'Buscar';
+    });
+
+    document.getElementById('yt-resultados').addEventListener('click', async (evento) => {
+      const boton = evento.target.closest('button');
+      const fila = boton && boton.closest('[data-video]');
+      if (!fila) return;
+      boton.disabled = true;
+      try {
+        const r = await fetch(urlPedirYT, {
+          method: 'POST',
+          headers: {'X-CSRFToken': token, 'X-Requested-With': 'fetch',
+                    'Content-Type': 'application/x-www-form-urlencoded'},
+          body: new URLSearchParams({video_id: fila.dataset.video}),
+        });
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        const datos = await r.json();
+        mostrarAviso(datos.mensaje, datos.ok);
+      } catch (e) {
+        mostrarAviso('No pudimos completar la acción. Intenta de nuevo.', false);
+      }
+      boton.disabled = false;
+      await refrescar();
+    });
+
     pintar();
   </script>
 {% endblock %}
