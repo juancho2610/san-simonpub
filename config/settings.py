@@ -244,3 +244,11 @@ SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
 # Canciones subidas como archivo: apagado. La música se pide por YouTube.
 # (Subir canciones descargadas expone al negocio en derechos de autor.)
 MUSICA_ARCHIVOS_ACTIVO = os.getenv('MUSICA_ARCHIVOS_ACTIVO', 'False') == 'True'
+
+# --- Correo (SMTP). Si no hay EMAIL_BACKEND en el .env, sigue usando la consola. ---
+EMAIL_HOST = os.getenv('EMAIL_HOST', 'localhost')
+EMAIL_PORT = int(os.getenv('EMAIL_PORT', '587'))
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
+EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True') == 'True'
+EMAIL_TIMEOUT = 10
