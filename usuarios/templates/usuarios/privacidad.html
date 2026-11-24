@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% block titulo %}Política de datos - San Simón Pub{% endblock %}
+{% block contenido %}
+<article class="politica">
+  <h1>Política de tratamiento de datos y aviso de privacidad</h1>
+  <p><em>Versión {{ version }} · Vigente desde el {{ vigencia }}</em></p>
+
+  <h2>1. Quién es el responsable de tus datos</h2>
+  <p>{{ negocio.nombre }} es el responsable de los datos personales que se recogen en este sitio (sansimonpub.com). Aquí te explicamos qué datos usamos, para qué y cómo ejercer tus derechos. Esta política se apoya en la Ley 1581 de 2012 y el Decreto 1377 de 2013, compilado en el Decreto 1074 de 2015.</p>
+  <table>
+    <tr><th>Responsable</th><td>{% if negocio.responsable %}{{ negocio.responsable }}{% else %}{{ negocio.nombre }}{% endif %}</td></tr>
+    {% if negocio.nit %}<tr><th>NIT</th><td>{{ negocio.nit }}</td></tr>{% endif %}
+    <tr><th>Dirección</th><td>{{ negocio.direccion }}</td></tr>
+    <tr><th>Teléfono</th><td>{{ negocio.telefono }}</td></tr>
+    {% if negocio.email_datos %}<tr><th>Correo para consultas y reclamos</th><td>{{ negocio.email_datos }}</td></tr>{% endif %}
+    <tr><th>Horario</th><td>{{ negocio.horario }}</td></tr>
+  </table>
+
+  <h2>2. Qué datos recogemos</h2>
+  <p>Recogemos solo los datos que el sistema necesita para tomar pedidos, atenderte y mantener segura tu cuenta. No pedimos datos sensibles (salud, biometría, orientación, etc.).</p>
+  <table>
+    <tr><th>Categoría</th><th>Datos</th><th>Cuándo se recogen</th></tr>
+    <tr><td>Tu cuenta</td><td>Nombre de usuario, correo electrónico, contraseña (se guarda cifrada, nadie puede leerla), teléfono y dirección de entrega (ambos opcionales) y las fechas de registro y de último ingreso</td><td>Al registrarte o editar tu perfil</td></tr>
+    <tr><td>Tus pedidos y cuentas</td><td>Productos y opciones elegidas, tipo de pedido (en mesa, para recoger o a domicilio), número de mesa, dirección y teléfono de entrega, notas y comentarios que escribas, comprobantes</td><td>Al hacer un pedido</td></tr>
+    <tr><td>Asistente virtual</td><td>Los mensajes que escribes en el chat y las respuestas que recibes</td><td>Al usar el asistente</td></tr>
+    <tr><td>Música</td><td>Las canciones que pides y lo que buscas, asociado a tu cuenta</td><td>Al buscar o pedir una canción</td></tr>
+    <tr><td>Seguridad</td><td>Nombre de usuario y hora de cada intento fallido de ingreso, cookies de sesión y registros técnicos del servidor (dirección IP y fecha de cada visita)</td><td>Al ingresar o navegar</td></tr>
+  </table>
+  <p>No vendemos tus datos ni los usamos para publicidad de terceros.</p>
+
+  <h2>3. Para qué usamos tus datos</h2>
+  <ul>
+    <li>Crear y administrar tu cuenta y permitirte ingresar.</li>
+    <li>Recibir, preparar y entregar tus pedidos, y emitir comprobantes y estados de cuenta.</li>
+    <li>Contactarte por un pedido en curso, en especial en los domicilios.</li>
+    <li>Enviarte por correo el enlace para recuperar tu contraseña.</li>
+    <li>Responder tus preguntas sobre el menú y tus pedidos mediante el asistente virtual, que usa inteligencia artificial.</li>
+    <li>Administrar la cola de música del bar.</li>
+    <li>Proteger el sistema: bloquear intentos repetidos de ingreso, evitar abusos y detectar fallos.</li>
+    <li>Elaborar estadísticas internas del negocio, como ventas y productos más pedidos.</li>
+  </ul>
+  <p>Si quisiéramos usar tus datos para otra cosa, como promociones, te lo pediremos antes.</p>
+
+  <h2>4. Con quién compartimos tus datos</h2>
+  <p>Para que el sistema funcione usamos cinco proveedores, y cada uno recibe solo lo necesario para su tarea. No compartimos tus datos con nadie más, salvo orden de una autoridad competente.</p>
+  <table>
+    <tr><th>Proveedor</th><th>Para qué</th><th>Qué recibe</th><th>Ubicación</th></tr>
+    <tr><td>Google Cloud</td><td>Aloja el sistema y su base de datos</td><td>Todos los datos del sistema</td><td>Estados Unidos (región central)</td></tr>
+    <tr><td>Anthropic</td><td>Hace funcionar la inteligencia artificial del asistente</td><td>Los mensajes del chat y el contexto del menú necesario para responder</td><td>Estados Unidos</td></tr>
+    <tr><td>Cloudflare (Turnstile)</td><td>Comprueba que quien ingresa o se registra es una persona</td><td>Datos técnicos del navegador y dirección IP</td><td>Varios países</td></tr>
+    <tr><td>Brevo</td><td>Envía el correo de recuperación de contraseña</td><td>Tu correo y el texto del mensaje</td><td>Unión Europea</td></tr>
+    <tr><td>YouTube (Google)</td><td>Busca y reproduce la música del bar</td><td>El texto de tu búsqueda; la hace nuestro servidor, así que tu nombre y tu cuenta no se envían</td><td>Estados Unidos</td></tr>
+  </table>
+  <p>Varios de estos proveedores están fuera de Colombia. Al aceptar esta política autorizas ese envío, solo para la finalidad indicada.</p>
+
+  <h2>5. Cuánto tiempo conservamos tus datos</h2>
+  <p>Los datos de uso se borran solos en plazos cortos; los de tu cuenta y tus pedidos se conservan mientras tengas cuenta y mientras la ley lo exija.</p>
+  <table>
+    <tr><th>Dato</th><th>Cuánto se conserva</th></tr>
+    <tr><td>Mensajes del asistente</td><td>{{ retencion_chat }} días, luego se borran solos</td></tr>
+    <tr><td>Intentos fallidos de ingreso</td><td>Hasta que vence el bloqueo temporal, luego se borran solos</td></tr>
+    <tr><td>Búsquedas de música guardadas</td><td>7 días, luego se borran solas</td></tr>
+    <tr><td>Copias de seguridad</td><td>Hasta 14 días (base de datos y fotos del menú); las instantáneas del servidor, hasta 7 días</td></tr>
+    <tr><td>Cuenta, pedidos y comprobantes</td><td>Mientras tengas cuenta y el tiempo que exija la ley contable y tributaria</td></tr>
+  </table>
+  <p>Los registros técnicos del servidor (dirección IP y fecha de cada visita) se conservan 14 días y luego se borran solos. Si pides eliminar tu cuenta, borramos tus datos, salvo los que la ley nos obligue a conservar.</p>
+
+  <h2>6. Tus derechos y cómo ejercerlos</h2>
+  <p>Como titular de tus datos tienes derecho, según el artículo 8 de la Ley 1581 de 2012, a:</p>
+  <ul>
+    <li>Conocer, actualizar y rectificar tus datos.</li>
+    <li>Pedir prueba de la autorización que nos diste.</li>
+    <li>Saber para qué usamos tus datos.</li>
+    <li>Revocar tu autorización y pedir que borremos tus datos cuando no se respeten tus derechos o los principios de la ley.</li>
+    <li>Acceder gratis a tus datos.</li>
+    <li>Presentar quejas ante la Superintendencia de Industria y Comercio (SIC).</li>
+  </ul>
+  <p><strong>Cómo hacerlo.</strong> {% if negocio.email_datos %}Escríbenos a <strong>{{ negocio.email_datos }}</strong>{% else %}Comunícate con nosotros al {{ negocio.telefono }} o en el local{% endif %}, con tu nombre, el correo de tu cuenta y lo que pides. Las consultas se responden en máximo 10 días hábiles; si no alcanzamos, te avisamos el motivo y la nueva fecha, que no pasará de 5 días hábiles más. Los reclamos se responden en máximo 15 días hábiles; si no alcanzamos, te informamos el motivo y la nueva fecha, que no pasará de 8 días hábiles más.</p>
+  <p><strong>Queja ante la SIC.</strong> Solo puedes acudir a la SIC después de haber hecho tu consulta o reclamo con nosotros.</p>
+
+  <h2>7. Seguridad, menores de edad y cookies</h2>
+  <p><strong>Seguridad.</strong> Protegemos tus datos con conexión cifrada (HTTPS), contraseñas guardadas de forma cifrada, accesos separados por rol, un captcha y un límite de intentos en el ingreso, copias de seguridad diarias y borrado automático de los datos de uso. Ninguna medida es infalible; si ocurre un incidente que afecte tus datos, te lo informaremos.</p>
+  <p><strong>Menores de edad.</strong> Este sitio es para mayores de 18 años, porque el establecimiento vende licor. No recogemos a propósito datos de menores; si detectamos una cuenta de un menor, la eliminamos.</p>
+  <p><strong>Cookies y almacenamiento.</strong> Usamos solo lo necesario: una cookie de sesión que mantiene tu ingreso, una de seguridad contra formularios falsos y el almacenamiento temporal de tu navegador, donde el asistente guarda la conversación mientras usas la app. El captcha de Cloudflare puede usar sus propias cookies. El reproductor del bar, que corre en el computador del local y no en tu celular, carga YouTube, que puede usar las suyas.</p>
+
+  <h2>8. Vigencia y cambios</h2>
+  <p>Esta política rige desde el {{ vigencia }} (versión {{ version }}). Si la cambiamos de forma sustancial en lo que se refiere a quién es el responsable o para qué usamos tus datos, te lo comunicaremos antes de aplicar el cambio.</p>
+</article>
+{% endblock %}

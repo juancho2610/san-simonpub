@@ -252,3 +252,11 @@ EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
 EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True') == 'True'
 EMAIL_TIMEOUT = 10
+
+# Política de tratamiento de datos (Ley 1581). Si cambia el texto, sube la versión.
+PRIVACIDAD_VERSION = '1.0'
+PRIVACIDAD_VIGENCIA = '23 de noviembre de 2026'
+NEGOCIO.update({
+    'responsable': '',   # pendiente: nombre del dueño o razón social
+    'email_datos': '',   # pendiente: correo para consultas y reclamos de datos
+})

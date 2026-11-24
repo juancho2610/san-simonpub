@@ -37,6 +37,9 @@
       <div class="aviso {{ m.tags }}">{{ m }}</div>
     {% endfor %}
     {% block contenido %}{% endblock %}
+    <footer class="pie">
+      <a href="{% url 'privacidad' %}">Política de tratamiento de datos</a>
+    </footer>
   </main>
 
   <nav class="navegacion" aria-label="Navegación principal">

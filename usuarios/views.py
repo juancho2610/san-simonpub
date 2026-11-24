@@ -157,3 +157,13 @@ class RecuperarEnviado(auth_views.PasswordResetDoneView):
         if settings.DEBUG and settings.RECUPERAR_ENLACE_EN_PANTALLA:
             contexto['enlaces_dev'] = enlaces
         return contexto
+
+
+def privacidad(request):
+    """Política de tratamiento de datos (pública: se lee antes de registrarse)."""
+    return render(request, 'usuarios/privacidad.html', {
+        'negocio': settings.NEGOCIO,
+        'version': settings.PRIVACIDAD_VERSION,
+        'vigencia': settings.PRIVACIDAD_VIGENCIA,
+        'retencion_chat': settings.ASISTENTE_RETENCION_DIAS,
+    })

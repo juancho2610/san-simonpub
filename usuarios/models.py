@@ -25,6 +25,9 @@ class Usuario(AbstractUser):
     email = models.EmailField('correo electrónico', unique=True)
     telefono = models.CharField(max_length=20, blank=True)
     direccion = models.CharField('dirección de entrega', max_length=200, blank=True)
+    # Prueba de la autorización de datos (Ley 1581): cuándo y qué versión aceptó.
+    acepto_privacidad_en = models.DateTimeField(null=True, blank=True, editable=False)
+    version_privacidad = models.CharField(max_length=10, blank=True, editable=False)
     rol = models.ForeignKey(
         Rol, on_delete=models.PROTECT, related_name='usuarios',
         null=True, blank=True,
